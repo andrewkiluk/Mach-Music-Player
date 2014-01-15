@@ -21,7 +21,7 @@ public class MetaExtractActivity extends Activity {
         super.onCreate(savedInstanceState);
         getInit();
  
-        // Ablum_art reterival code //
+        // Album_art retrieval code //
  
         metaRetriver = new MediaMetadataRetriever();
         metaRetriver.setDataSource("/sdcard/audio.mp3");
