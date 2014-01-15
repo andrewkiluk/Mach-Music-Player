@@ -11,8 +11,12 @@ A few things have been fixed. The player looks better overall, with some color a
 Repeat and shuffle are working, but only if songs terminate naturally, i.e. not with previous and next buttons. This is 
 not worth independently fixing, as it should be fixed as part of a more robust queue / playlist structure I'm planning.
 
+Another goal is to add a presence to the notification pane which allows the user to pause / next / previous during playback.
+
 The next task is definitely distinguishing between a current playlist and the entire library, which should require some 
 very serious structural shifts.
+
+
 
 
 
