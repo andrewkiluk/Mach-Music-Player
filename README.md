@@ -4,6 +4,10 @@ Simple-Music-Player
 The music apps I've found for Android have either been buggy or have had bad interfaces, so my first attempt at an app
 is making a music player that I like. 
 
+This project started from an example at http://www.androidhive.info/.
+
+
+
 Version 0.8.1:
 
 A few things have been fixed. The player looks better overall, with some color and icon changes, and the slider has been switched to one I like more. Album art retrieval is now working correctly.
@@ -15,8 +19,6 @@ Another goal is to add a presence to the notification pane which allows the user
 
 The next task is definitely distinguishing between a current playlist and the entire library, which should require some 
 very serious structural shifts.
-
-
 
 
 
