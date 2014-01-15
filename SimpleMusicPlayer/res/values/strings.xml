@@ -3,6 +3,12 @@
 
     <string name="app_name">Simple Music Player</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
-
+    <string name="artist_name">--Artist--</string>
+    <string name="song_name">--Song Title--</string>
+    <string name="album_name">--Album Title--</string>
+    
+    <color name="bg">#666e80</color>
+    <color name="footercolor">#2b2b3b</color>
+    <color name="selected">#6ab5eb</color>
+    
 </resources>
