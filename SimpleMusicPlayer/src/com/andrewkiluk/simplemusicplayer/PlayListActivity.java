@@ -3,8 +3,11 @@ package com.andrewkiluk.simplemusicplayer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import android.app.ActionBar;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,12 +25,15 @@ public class PlayListActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playlist);
+        
+        ActionBar bar = getActionBar();
+        bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#2b2b3b")));
  
         ArrayList<HashMap<String, String>> songsListData = new ArrayList<HashMap<String, String>>();
         
         // albumFrame gets passed to SongsManager so that SongsManager can insert album covers in it. 
-        ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
-        SongsManager plm = new SongsManager(albumFrame);
+        //ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
+        SongsManager plm = new SongsManager();
         
         // get all songs from sdcard
         this.songsList = plm.getPlayList();

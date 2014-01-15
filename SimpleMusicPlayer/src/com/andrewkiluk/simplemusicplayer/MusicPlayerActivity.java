@@ -5,8 +5,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
@@ -22,8 +28,6 @@ import android.widget.Toast;
 public class MusicPlayerActivity extends Activity implements OnCompletionListener, SeekBar.OnSeekBarChangeListener {
 	 
     private ImageButton btnPlay;
-    private ImageButton btnForward;
-    private ImageButton btnBackward;
     private ImageButton btnNext;
     private ImageButton btnPrevious;
     private ImageButton btnPlaylist;
@@ -41,17 +45,21 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
     private Handler mHandler = new Handler();;
     private SongsManager songManager;
     private Utilities utils;
-    private int seekForwardTime = 5000; // 5000 milliseconds
-    private int seekBackwardTime = 5000; // 5000 milliseconds
     private int currentSongIndex = 0;
     private boolean isShuffle = false;
     private boolean isRepeat = false;
     private ArrayList<HashMap<String, String>> songsList = new ArrayList<HashMap<String, String>>();
+    
+    byte[] art;
+    
  
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player);
+        
+        ActionBar bar = getActionBar();
+        bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#2b2b3b")));
  
         // All player buttons
         btnPlay = (ImageButton) findViewById(R.id.playButton);
@@ -70,10 +78,11 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
         // Mediaplayer
         mp = new MediaPlayer();
         
-        
-        // albumFrame gets passed to SongsManager so that SongsManager can insert album covers in it. 
-        ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
-        songManager = new SongsManager(albumFrame);
+        // We will use acr to retrieve album covers
+        MediaMetadataRetriever acr = new MediaMetadataRetriever();
+                
+        // These create instances of classes from the other files.
+        songManager = new SongsManager();
         utils = new Utilities();
  
         // Listeners
@@ -131,6 +140,8 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
                     playSong(0);
                     currentSongIndex = 0;
                 }
+                
+                
  
             }
         });
@@ -245,6 +256,10 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
             mp.setDataSource(songsList.get(songIndex).get("songPath"));
             mp.prepare();
             mp.start();
+            
+            MediaMetadataRetriever acr = new MediaMetadataRetriever();
+            final ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
+            
             // Displaying Song title
             String songTitle = songsList.get(songIndex).get("songTitle");
             String songArtist = songsList.get(songIndex).get("songArtist");
@@ -252,6 +267,18 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
             songTitleLabel.setText(songTitle);
             songArtistLabel.setText(songArtist);
             songAlbumLabel.setText(songAlbum);
+            
+            try {
+            	acr.setDataSource(songsList.get(songIndex).get("songPath"));
+                art = acr.getEmbeddedPicture();
+                Bitmap songImage = BitmapFactory
+                        .decodeByteArray(art, 0, art.length);
+                albumFrame.setImageBitmap(songImage);
+                
+
+            } catch (Exception e) {
+            	albumFrame.setImageResource(R.drawable.album);
+            }
  
             // Changing Button Image to pause image
             btnPlay.setImageResource(R.drawable.pause_button);
@@ -320,7 +347,7 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
     }
  
     /**
-     * When user stops moving the progress hanlder
+     * When user stops moving the progress handler
      * */
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {

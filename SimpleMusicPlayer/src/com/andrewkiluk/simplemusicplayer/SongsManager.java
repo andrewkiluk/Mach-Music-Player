@@ -5,12 +5,10 @@ import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.widget.ImageView;
-import android.widget.TextView;
  
 public class SongsManager {
     // SDCard Path
@@ -18,11 +16,10 @@ public class SongsManager {
     private ArrayList<HashMap<String, String>> songsList = new ArrayList<HashMap<String, String>>();
     MediaMetadataRetriever mmr = new MediaMetadataRetriever();
     byte[] art;
-    private ImageView albumFrame;
     
     // Constructor
-    public SongsManager(ImageView picture){
-    	 albumFrame = picture;
+    public SongsManager(){
+
     }
  
     /**
@@ -42,17 +39,6 @@ public class SongsManager {
                 song.put("songTitle", mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
                 song.put("songArtist", mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
                 song.put("songAlbum", mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM));
-                
-                try {
-                    art = mmr.getEmbeddedPicture();
-                    Bitmap songImage = BitmapFactory
-                            .decodeByteArray(art, 0, art.length);
-                    albumFrame.setImageBitmap(songImage);
-                    
-
-                } catch (Exception e) {
-                    e = null;
-                }
                 
                 // Adding each song to SongList
                 songsList.add(song);
