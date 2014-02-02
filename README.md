@@ -6,6 +6,18 @@ is making a music player that I like.
 
 This project started from an example at http://www.androidhive.info/.
 
+Version 0.9:
+
+More general UI improvements, and the ability to change the directory which is searched for mp3 files via the settings menu. The remaining tasks: 
+
+ - setting up a playlist / queuing system
+ 
+ - changing the directory picker to a GUI rather than having it text-based
+ 
+ - implementing the player as a service, to have it show up in the notifications tray
+ 
+As is, it's pretty useable, at least if you like listen to the same album over and over like I do.
+
 
 
 Version 0.8.1:
