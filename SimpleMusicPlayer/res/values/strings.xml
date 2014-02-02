@@ -6,9 +6,16 @@
     <string name="artist_name">--Artist--</string>
     <string name="song_name">--Song Title--</string>
     <string name="album_name">--Album Title--</string>
+    <string name="music_directory">/media/audio/mp3</string>
+    <string name="add_songs_button_text">Add Songs</string>
+    <string name="clear_playlist_button_text">Clear Playlist</string>
+
+
     
     <color name="bg">#666e80</color>
     <color name="footercolor">#2b2b3b</color>
     <color name="selected">#6ab5eb</color>
+    <color name="selected_orange">#996632</color>
+    
     
 </resources>

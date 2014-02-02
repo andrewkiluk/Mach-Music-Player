@@ -8,6 +8,7 @@ import java.util.Random;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -17,6 +18,11 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
+import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -60,6 +66,11 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
         
         ActionBar bar = getActionBar();
         bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#2b2b3b")));
+        
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String library_location = sharedPrefs.getString("library_location", "NULL");
+
+
  
         // All player buttons
         btnPlay = (ImageButton) findViewById(R.id.playButton);
@@ -77,12 +88,11 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
  
         // Mediaplayer
         mp = new MediaPlayer();
+        mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         
-        // We will use acr to retrieve album covers
-        MediaMetadataRetriever acr = new MediaMetadataRetriever();
-                
+               
         // These create instances of classes from the other files.
-        songManager = new SongsManager();
+        songManager = new SongsManager(library_location);
         utils = new Utilities();
  
         // Listeners
@@ -91,8 +101,48 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
  
         // Getting all songs list
         songsList = songManager.getPlayList();
+        
+        try {
+        	int songIndex = 0;
+            mp.reset();
+            mp.setDataSource(songsList.get(songIndex).get("songPath"));
+            mp.prepare();
+            
+            // Used to read ID3 tags.
+            MediaMetadataRetriever acr = new MediaMetadataRetriever();
+            
+            final ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
+            
+            // Displaying Song title
+            String songTitle = songsList.get(songIndex).get("songTitle");
+            String songArtist = songsList.get(songIndex).get("songArtist");
+            String songAlbum = songsList.get(songIndex).get("songAlbum");
+            songTitleLabel.setText(songTitle);
+            songArtistLabel.setText(songArtist);
+            songAlbumLabel.setText(songAlbum);
+            
+            try {
+            	acr.setDataSource(songsList.get(songIndex).get("songPath"));
+                art = acr.getEmbeddedPicture();
+                Bitmap songImage = BitmapFactory
+                        .decodeByteArray(art, 0, art.length);
+                albumFrame.setImageBitmap(songImage);
+                
+
+            } catch (Exception e) {
+            	albumFrame.setImageResource(R.drawable.album);
+            }
  
-        // By default play first song
+            // Updating progress bar
+            updateProgressBar();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
  
         /**
          * Play button click event
@@ -226,8 +276,30 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
                 startActivityForResult(i, 100);
             }
         });
-    }
         
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.layout.menu, menu);
+        return true;
+    }
+     
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        switch(item.getItemId())
+        {
+            case R.id.menu_settings:
+            	Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivityForResult(i, 100);
+                return true;
+            default:
+                  return super.onOptionsItemSelected(item);
+        }
+    }
     
     /**
      * Receiving song index from playlist view
@@ -244,12 +316,14 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
         }
  
     }
+    
+    
  
     /**
      * Function to play a song
      * @param songIndex - index of song
      * */
-    public void  playSong(int songIndex){
+    public void playSong(int songIndex){
         // Play song
          try {
             mp.reset();
@@ -257,7 +331,9 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
             mp.prepare();
             mp.start();
             
+            // Used to read ID3 tags.
             MediaMetadataRetriever acr = new MediaMetadataRetriever();
+            
             final ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
             
             // Displaying Song title
@@ -286,6 +362,9 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
             // set Progress bar values
             songProgressBar.setProgress(0);
             songProgressBar.setMax(100);
+            
+            
+            
  
             // Updating progress bar
             updateProgressBar();

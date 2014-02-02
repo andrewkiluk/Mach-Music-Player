@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+ 
+    <PreferenceCategory android:title="Settings" >
+        <EditTextPreference
+                android:title="Library Directory"
+                android:summary="Directory to search for .mp3 files.\nRestart after changing."
+                android:key="library_location"
+                android:defaultValue="/media/audio/mp3"/>
+    </PreferenceCategory>
+     
+</PreferenceScreen>

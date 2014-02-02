@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -31,8 +30,6 @@ public class PlayListActivity extends ListActivity {
  
         ArrayList<HashMap<String, String>> songsListData = new ArrayList<HashMap<String, String>>();
         
-        // albumFrame gets passed to SongsManager so that SongsManager can insert album covers in it. 
-        //ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
         SongsManager plm = new SongsManager();
         
         // get all songs from sdcard
@@ -49,7 +46,7 @@ public class PlayListActivity extends ListActivity {
  
         // Adding menuItems to ListView
         ListAdapter adapter = new SimpleAdapter(this, songsListData,
-                R.layout.playlist_item, new String[] { "songTitle" }, new int[] {
+                R.layout.playlist_item, new String[] { "playlistSongTitle" }, new int[] {
                         R.id.songTitle });
  
         setListAdapter(adapter);
