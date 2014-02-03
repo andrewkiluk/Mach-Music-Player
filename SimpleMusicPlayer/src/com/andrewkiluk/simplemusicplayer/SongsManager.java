@@ -25,12 +25,6 @@ public class SongsManager {
     
    
  // Constructor
-    public SongsManager(){
-        RELATIVE_MEDIA_PATH = "/amazonmp3/Daft_Punk";
-        MEDIA_PATH = "file://" + baseDir + RELATIVE_MEDIA_PATH;
-    }
-    
- // Constructor
     public SongsManager(String library_location){
         RELATIVE_MEDIA_PATH = library_location;//"/amazonmp3/Daft_Punk";
         MEDIA_PATH = "file://" + baseDir + RELATIVE_MEDIA_PATH;
@@ -43,10 +37,11 @@ public class SongsManager {
     public ArrayList<HashMap<String, String>> getPlayList(){
         try {
             File home = new File(new URI(MEDIA_PATH));
+            int test = home.listFiles().length;
             loadFiles(home);
         }
-        catch (URISyntaxException e) {
-            e.printStackTrace();
+        catch (Exception e) {
+            songsList = null;
         } 
         
         // return songs list array

@@ -6,7 +6,7 @@
                 android:title="Library Directory"
                 android:summary="Directory to search for .mp3 files.\nRestart after changing."
                 android:key="library_location"
-                android:defaultValue="/media/audio/mp3"/>
+                android:defaultValue="/media"/>
     </PreferenceCategory>
      
 </PreferenceScreen>

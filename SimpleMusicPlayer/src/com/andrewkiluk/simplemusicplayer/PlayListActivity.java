@@ -6,12 +6,16 @@ import java.util.HashMap;
 import android.app.ActionBar;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -19,18 +23,26 @@ import android.widget.SimpleAdapter;
 public class PlayListActivity extends ListActivity {
     // Songs list
     public ArrayList<HashMap<String, String>> songsList = new ArrayList<HashMap<String, String>>();
+    public String library_location;
+    
+    private Button button_add_songs;
  
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playlist);
+
+        button_add_songs = (Button) findViewById(R.id.button_add_songs);
         
         ActionBar bar = getActionBar();
         bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#2b2b3b")));
  
         ArrayList<HashMap<String, String>> songsListData = new ArrayList<HashMap<String, String>>();
         
-        SongsManager plm = new SongsManager();
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        library_location = sharedPrefs.getString("library_location", "NULL");
+        
+        SongsManager plm = new SongsManager(library_location);
         
         // get all songs from sdcard
         this.songsList = plm.getPlayList();
@@ -53,6 +65,7 @@ public class PlayListActivity extends ListActivity {
  
         // selecting single ListView item
         ListView lv = getListView();
+        
         // listening to single listitem click
         lv.setOnItemClickListener(new OnItemClickListener() {
  
@@ -72,5 +85,26 @@ public class PlayListActivity extends ListActivity {
                 finish();
             }
         });
+        
+        button_add_songs.setOnClickListener(new View.OnClickListener() {
+        	 
+            @Override
+            public void onClick(View arg0) {
+                Intent i = new Intent(getApplicationContext(), PlayListBuilderActivity.class);
+                startActivityForResult(i, 100);
+            }
+        });
+        
+        
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode,
+                                     int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode == 100){
+             int i = 0;
+        }
+ 
     }
 }

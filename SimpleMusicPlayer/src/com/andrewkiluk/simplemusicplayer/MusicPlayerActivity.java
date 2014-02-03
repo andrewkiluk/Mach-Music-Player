@@ -1,13 +1,17 @@
 package com.andrewkiluk.simplemusicplayer;
 
-import java.io.IOException;
+import static java.lang.System.out;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -69,9 +73,7 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
         
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         String library_location = sharedPrefs.getString("library_location", "NULL");
-
-
- 
+        
         // All player buttons
         btnPlay = (ImageButton) findViewById(R.id.playButton);
         btnNext = (ImageButton) findViewById(R.id.nextButton);
@@ -93,12 +95,13 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
                
         // These create instances of classes from the other files.
         songManager = new SongsManager(library_location);
+        LibraryFiller libFill = new LibraryFiller(library_location);
         utils = new Utilities();
  
         // Listeners
         songProgressBar.setOnSeekBarChangeListener(this); // Important
         mp.setOnCompletionListener(this); // Important
- 
+        
         // Getting all songs list
         songsList = songManager.getPlayList();
         
@@ -135,11 +138,7 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
  
             // Updating progress bar
             updateProgressBar();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         
@@ -204,14 +203,19 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
  
             @Override
             public void onClick(View arg0) {
-                if(currentSongIndex > 0){
-                    playSong(currentSongIndex - 1);
-                    currentSongIndex = currentSongIndex - 1;
-                }else{
-                    // play last song
-                    playSong(songsList.size() - 1);
-                    currentSongIndex = songsList.size() - 1;
-                }
+            	if (mp.getCurrentPosition() > 3000){
+            		playSong(currentSongIndex);
+            	}else{
+            		if(currentSongIndex > 0){
+                        playSong(currentSongIndex - 1);
+                        currentSongIndex = currentSongIndex - 1;
+                    }else{
+                        // play last song
+                        playSong(songsList.size() - 1);
+                        currentSongIndex = songsList.size() - 1;
+                    }
+            	}
+                
  
             }
         });
@@ -279,6 +283,17 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
         
     }
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // These methods are to set up the Settings menu.
+    
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -318,6 +333,7 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
     }
     
     
+ 
  
     /**
      * Function to play a song
@@ -368,13 +384,9 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
  
             // Updating progress bar
             updateProgressBar();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) {
+            out.println("Whoops");
+        } 
         
     }
  
@@ -390,21 +402,25 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
      * */
     private Runnable mUpdateTimeTask = new Runnable() {
            public void run() {
-               long totalDuration = mp.getDuration();
-               long currentDuration = mp.getCurrentPosition();
- 
-               // Displaying Total Duration time
-               songTotalDurationLabel.setText(""+utils.milliSecondsToTimer(totalDuration));
-               // Displaying time completed playing
-               songCurrentDurationLabel.setText(""+utils.milliSecondsToTimer(currentDuration));
- 
-               // Updating progress bar
-               int progress = (int)(utils.getProgressPercentage(currentDuration, totalDuration));
-               //Log.d("Progress", ""+progress);
-               songProgressBar.setProgress(progress);
- 
-               // Running this thread after 100 milliseconds
-               mHandler.postDelayed(this, 100);
+        	   try{
+        		   long totalDuration = mp.getDuration();
+                   long currentDuration = mp.getCurrentPosition();
+     
+                   // Displaying Total Duration time
+                   songTotalDurationLabel.setText(""+utils.milliSecondsToTimer(totalDuration));
+                   // Displaying time completed playing
+                   songCurrentDurationLabel.setText(""+utils.milliSecondsToTimer(currentDuration));
+     
+                   // Updating progress bar
+                   int progress = (int)(utils.getProgressPercentage(currentDuration, totalDuration));
+                   //Log.d("Progress", ""+progress);
+                   songProgressBar.setProgress(progress);
+     
+                   // Running this thread after 100 milliseconds
+                   mHandler.postDelayed(this, 100);
+        	   }catch(IllegalStateException e){
+           		
+           	}
            }
         };
  
@@ -430,15 +446,20 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
      * */
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-        mHandler.removeCallbacks(mUpdateTimeTask);
-        int totalDuration = mp.getDuration();
-        int currentPosition = utils.progressToTimer(seekBar.getProgress(), totalDuration);
- 
-        // forward or backward to certain seconds
-        mp.seekTo(currentPosition);
- 
-        // update timer progress again
-        updateProgressBar();
+    	try{
+    		mHandler.removeCallbacks(mUpdateTimeTask);
+            int totalDuration = mp.getDuration();
+            int currentPosition = utils.progressToTimer(seekBar.getProgress(), totalDuration);
+     
+            // forward or backward to certain seconds
+            mp.seekTo(currentPosition);
+     
+            // update timer progress again
+            updateProgressBar();
+    	} catch(IllegalStateException e){
+    		
+    	}
+        
     }
  
     /**
@@ -476,5 +497,6 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
      super.onDestroy();
         mp.release();
      }
+    
  
 }
