@@ -6,6 +6,18 @@ is making a music player that I like.
 
 This project started from an example at http://www.androidhive.info/.
 
+Version 0.9.1:
+
+Added some framework for a playlist system. There's are now classes for songs/albums/artists, and there's a tab-swipe UI for selection. Loading the fragments into that framework is not yet working.
+
+Minor fixes: 
+
+ - Program no longer crashes on exit.
+
+ - Previous button has been changed to return to the beginning of the song  if the progress is past three seconds. This is more in line with expected behavior.
+
+
+
 Version 0.9:
 
 More general UI improvements, and the ability to change the directory which is searched for mp3 files via the settings menu. The remaining tasks: 
