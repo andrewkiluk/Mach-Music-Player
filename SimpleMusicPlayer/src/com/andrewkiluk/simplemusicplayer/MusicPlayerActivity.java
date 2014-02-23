@@ -13,10 +13,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -62,8 +65,16 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
     
     byte[] art;
     
- 
+    
     @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    }
+    
+    // This checks incoming intents to see if headphones have been unplugged, then pauses
+
+   @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player);
@@ -92,7 +103,11 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
         mp = new MediaPlayer();
         mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         
-               
+        // Set up a listener to pause if headphones are unplugged.
+        IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+        HeadphoneUnplugListener receiver = new HeadphoneUnplugListener(mp);
+        registerReceiver( receiver, intentFilter );
+        
         // These create instances of classes from the other files.
         songManager = new SongsManager(library_location);
         LibraryFiller libFill = new LibraryFiller(library_location);
@@ -498,5 +513,25 @@ public class MusicPlayerActivity extends Activity implements OnCompletionListene
         mp.release();
      }
     
+    
+    
  
+}
+
+class HeadphoneUnplugListener extends BroadcastReceiver
+{
+	private MediaPlayer mp;
+	 // Constructor
+    public HeadphoneUnplugListener(MediaPlayer input){
+    	mp = input;
+        
+    }
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+        	if (mp.isPlaying()){
+        		mp.pause();
+        	}
+        }
+    }
 }
