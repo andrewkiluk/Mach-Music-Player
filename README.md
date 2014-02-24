@@ -1,12 +1,22 @@
 Simple-Music-Player
 ===================
 
-The music apps I've found for Android have either been buggy or have had bad interfaces, so my first attempt at an app
-is making a music player that I like. 
+The music apps I've found for Android have been bloated and / or constantly nagging you to like them on Facebook, so my first attempt at an app is making a music player that I like. 
 
 This project started from an example at http://www.androidhive.info/.
 
+Version 0.9.2:
+--------------
+
+There is now a service which holds the MediaPlayer object! This required some massive reworking of the control flow, but it means that music playback won't halt after 15 minutes when the operating system puts the activity to sleep. It's also a necessary step toward adding notifications to control playback, which I think would be a nice feature.
+
+Also, now if headphones are unplugged the player will pause. This is very good for not bothering other people.
+
+I still have not completed any of the goals laid out in the Version 0.9 statement below, but I've made good progress toward two of them, and the other one is probably the easiest of the three anyway.
+
+
 Version 0.9.1:
+--------------
 
 Added some framework for a playlist system. There's are now classes for songs/albums/artists, and there's a tab-swipe UI for selection. Loading the fragments into that framework is not yet working.
 
@@ -19,6 +29,7 @@ Minor fixes:
 
 
 Version 0.9:
+------------
 
 More general UI improvements, and the ability to change the directory which is searched for mp3 files via the settings menu. The remaining tasks: 
 
@@ -33,6 +44,7 @@ As is, it's pretty useable, at least if you like listen to the same album over a
 
 
 Version 0.8.1:
+--------------
 
 A few things have been fixed. The player looks better overall, with some color and icon changes, and the slider has been switched to one I like more. Album art retrieval is now working correctly.
 
@@ -47,6 +59,8 @@ very serious structural shifts.
 
 
 Version 0.8:
+------------
+
 The player is mostly working, but with the following issues:
 
  - Repeat is not working.
