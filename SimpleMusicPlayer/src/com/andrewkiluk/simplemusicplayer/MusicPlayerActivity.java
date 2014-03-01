@@ -369,6 +369,8 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 					
 					mService.updatePlayList(songsList, songIndex);
 					
+					mService.createNotification(0);
+					
 					firstBind = false;
 				}
 			}catch (Exception e) {
@@ -513,9 +515,12 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 				// Running this thread after 100 milliseconds
 				mHandler.postDelayed(this, 100);
-			}catch(IllegalStateException|NullPointerException e){
+			}catch(NullPointerException e){
+
+			}catch(IllegalStateException e){
 
 			}
+			
 		}
 	};
 

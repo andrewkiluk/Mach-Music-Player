@@ -11,6 +11,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
@@ -19,12 +20,13 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 
 
 public class MusicPlayerService extends Service implements OnCompletionListener, MediaPlayer.OnPreparedListener, AudioManager.OnAudioFocusChangeListener {
 	
 	MediaPlayer mp = null;
-	private int currentSongIndex;
+	private int currentSongIndex = 0;
 	private ArrayList<HashMap<String, String>> songsList;
 	
 	// This stores the old playback location if the audio focus is lost.
@@ -50,6 +52,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 	byte[] art;
 	Bitmap songImage;
+	private int largeIconHeight;
+	private int largeIconWidth;
 	
 	public interface BoundServiceListener {
 		public void songComplete(int newCurrentSongIndex);
@@ -82,6 +86,13 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		mp.setOnCompletionListener(this);
 		
 		po = new PlayerOptions();
+		
+		// Check the dimensions of notification icons.
+		
+		Context mContext = getApplicationContext();
+		Resources res = mContext.getResources();
+		largeIconHeight = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
+		largeIconWidth = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
 		
 		// Set up a listener to pause if headphones are unplugged.
 				IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
@@ -207,7 +218,47 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 	public void playSong(int songIndex){
 		play(songsList.get(songIndex).get("songPath"));
+		createNotification(songIndex);
 		currentSongIndex = songIndex;
+	}
+	
+	public void createNotification(int songIndex)
+	{
+		
+		int myID = 1234;
+	
+		//The intent to launch when the user clicks the expanded notification
+		Intent intent = new Intent(this, MusicPlayerActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		PendingIntent pendIntent = PendingIntent.getActivity(this, 0, intent, 0);
+		
+		Bitmap albumThumb;
+	
+		try {
+			// Used to read ID3 tags and retrieve album art.
+			MediaMetadataRetriever acr = new MediaMetadataRetriever();
+			acr.setDataSource(songsList.get(songIndex).get("songPath"));
+			art = acr.getEmbeddedPicture();
+			songImage = BitmapFactory
+					.decodeByteArray(art, 0, art.length);
+			albumThumb = Bitmap.createScaledBitmap(songImage, largeIconWidth, largeIconHeight, false);
+	
+	
+		} catch (Exception e) {
+			albumThumb = null;
+		}
+	
+		    NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+		    builder.setContentTitle(songsList.get(songIndex).get("songTitle")).setContentText(songsList.get(songIndex).get("songArtist"))
+		           .setWhen(System.currentTimeMillis())
+		           .setOngoing(true).setPriority(Notification.PRIORITY_HIGH)
+		           .setContentIntent(pendIntent)
+		           .setSmallIcon(R.drawable.ic_action_play)
+		           .setLargeIcon(albumThumb);
+		    Notification notification = builder.build();
+	
+		notification.flags |= Notification.FLAG_NO_CLEAR;
+		startForeground(myID, notification);
 	}
 
 	public void play(String songPath) {
@@ -216,6 +267,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				AudioManager.AUDIOFOCUS_GAIN);
 
 		if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+			
+			
+			
 			mp.reset();
 			try {
 				mp.setDataSource(songPath);
@@ -226,26 +280,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			mp.setOnPreparedListener(this);
 			mp.prepareAsync(); // prepare asynchronously to not block main thread
 			
-			// Used to read ID3 tags.
-			MediaMetadataRetriever acr = new MediaMetadataRetriever();
-			
-			try {
-				acr.setDataSource(songPath);
-				art = acr.getEmbeddedPicture();
-				Bitmap songImage = BitmapFactory
-						.decodeByteArray(art, 0, art.length);
-	
-	
-			} catch (Exception e) {
-				songImage = null;
-			}
-			
-	//		Notification notification = new Notification.Builder(getApplicationContext())
-	//        .setContentTitle("Simple Music Player")
-	//        .setContentText("Test")
-	//        .setSmallIcon(R.drawable.ic_launcher)
-	//        .setLargeIcon(songImage)
-	//        .build();
+
 		}
 		
 	}
