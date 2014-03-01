@@ -49,6 +49,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	public BoundServiceListener mListener;
 	
 	public AudioManager audioManager;
+	private boolean hasAudioFocus = true;
 	
 	byte[] art;
 	Bitmap songImage;
@@ -57,6 +58,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 	public interface BoundServiceListener {
 		public void songComplete(int newCurrentSongIndex);
+		public void focusStolen();
 	}
 
 	// Binder for interaction
@@ -146,6 +148,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			// resume playback
 			if (mp == null) {
 				mp = new MediaPlayer();
+				mp.setOnCompletionListener(this);
 				
 				mp.reset();
 				String songPath = songsList.get(currentSongIndex).get("songPath");
@@ -157,6 +160,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				} 
 				
 				mp.seekTo(oldPosition.get());
+				oldPosition.set(0);
 		
 				
 			}
@@ -164,6 +168,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				mp.start();
 			}
 			mp.setVolume(1.0f, 1.0f);
+			hasAudioFocus = true;
 			break;
 
 		case AudioManager.AUDIOFOCUS_LOSS:
@@ -172,6 +177,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				mp.stop();
 				oldPosition = new PositionTracker();
 				oldPosition.set(mp.getCurrentPosition());
+				if (mListener!=null){
+					mListener.focusStolen();
+				}
+				hasAudioFocus = false;
 			}
 			mp.release();
 			mp = null;
@@ -182,6 +191,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			// playback. We don't release the media player because playback
 			// is likely to resume
 			if (mp.isPlaying()) mp.pause();
+			hasAudioFocus = false;
 			break;
 
 		case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
@@ -213,7 +223,13 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 	public void start() {
-		mp.start();
+		if  (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+				AudioManager.AUDIOFOCUS_GAIN)){
+			hasAudioFocus = true;
+		}
+		if (true) {
+			mp.start();
+		}
 	}
 	
 	public void playSong(int songIndex){
@@ -263,13 +279,11 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 	public void play(String songPath) {
 		
-		int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-				AudioManager.AUDIOFOCUS_GAIN);
-
-		if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-			
-			
-			
+		if  (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+				AudioManager.AUDIOFOCUS_GAIN)){
+			hasAudioFocus = true;
+		}
+		if (hasAudioFocus) {
 			mp.reset();
 			try {
 				mp.setDataSource(songPath);
@@ -310,7 +324,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 	public boolean isPlaying() {
-		return mp.isPlaying();
+		if (mp == null)
+			return false;
+		else
+			return mp.isPlaying();
 	}
 
 	public void seekTo(int currentPosition) {

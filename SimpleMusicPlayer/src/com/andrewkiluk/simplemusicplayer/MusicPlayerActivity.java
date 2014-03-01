@@ -84,6 +84,15 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 		
 	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		// Bind to MusicPlayerService
+		Intent i = new Intent(this, MusicPlayerService.class);
+		stopService(i);
+		
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -348,11 +357,14 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			binder.setListener(new BoundServiceListener() {
 
-
 				@Override
 				public void songComplete(int newCurrentSongIndex) {
 					updateSongUI(newCurrentSongIndex);
 					
+				}
+				
+				public void focusStolen() {
+					btnPlay.setImageResource(R.drawable.play_button);
 				}
 
 			});

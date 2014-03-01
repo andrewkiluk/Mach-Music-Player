@@ -5,6 +5,14 @@ The music apps I've found for Android have been bloated and / or constantly nagg
 
 This project started from an example at http://www.androidhive.info/.
 
+Version 0.9.3:
+--------------
+
+There are now system notifications displaying the song currently playing! It would be nice to get control buttons into the notifcation, but that will require creating a custom layout, so not today. 
+
+Also the audio focus handling was not behaving properly, so there are now some checks in place to prevent crashing. I think it's working, but I'll need to do more testing to be sure.
+
+
 Version 0.9.2:
 --------------
 
