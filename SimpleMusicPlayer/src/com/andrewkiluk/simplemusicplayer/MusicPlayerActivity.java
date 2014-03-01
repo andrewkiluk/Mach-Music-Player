@@ -373,7 +373,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				}
 			}catch (Exception e) {
 				
-			}
+			}			
 			currentSongIndex = mService.getCurrentSongIndex();
 
 
@@ -498,20 +498,13 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		public void run() {
 			try{
 
-
-				//  Maybe somehow just have this poll for the signals the service will send? 
-				//  And it can use those numbers for the longs if it makes sense?
-				//  But I do think it belongs in this activity.
-
-
-
 				long totalDuration = mp.getDuration();
 				long currentDuration = mp.getCurrentPosition();
 
 				// Displaying Total Duration time
-				songTotalDurationLabel.setText(""+utils.milliSecondsToTimer(totalDuration));
+				songTotalDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(totalDuration)));
 				// Displaying time completed playing
-				songCurrentDurationLabel.setText(""+utils.milliSecondsToTimer(currentDuration));
+				songCurrentDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(currentDuration)));
 
 				// Updating progress bar
 				int progress = (int)(utils.getProgressPercentage(currentDuration, totalDuration));
@@ -520,7 +513,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 				// Running this thread after 100 milliseconds
 				mHandler.postDelayed(this, 100);
-			}catch(IllegalStateException e){
+			}catch(IllegalStateException|NullPointerException e){
 
 			}
 		}

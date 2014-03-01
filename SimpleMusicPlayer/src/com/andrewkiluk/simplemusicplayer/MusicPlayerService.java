@@ -27,9 +27,26 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	private int currentSongIndex;
 	private ArrayList<HashMap<String, String>> songsList;
 	
+	// This stores the old playback location if the audio focus is lost.
+	// It has to be a class because integers in Java are fucking stupid.
+	class PositionTracker{
+		private int pos;
+		int get()
+		{
+			return pos; 
+		}
+		void set(int rhs){
+			pos = rhs;
+		}
+	}
+	PositionTracker oldPosition = new PositionTracker();
+	
+	
 	private PlayerOptions po;
 	
 	public BoundServiceListener mListener;
+	
+	public AudioManager audioManager;
 	
 	byte[] art;
 	Bitmap songImage;
@@ -72,13 +89,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				registerReceiver( receiver, intentFilter );
 
 		// Audio focus listener
-		AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-		int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-				AudioManager.AUDIOFOCUS_GAIN);
-
-		if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-			// could not get audio focus.
-		}
+		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		
 
 	}
 	
@@ -117,11 +129,25 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 
 	public void onAudioFocusChange(int focusChange) {
+		
 		switch (focusChange) {
 		case AudioManager.AUDIOFOCUS_GAIN:
 			// resume playback
 			if (mp == null) {
-				break;
+				mp = new MediaPlayer();
+				
+				mp.reset();
+				String songPath = songsList.get(currentSongIndex).get("songPath");
+				try {
+					mp.setDataSource(songPath);
+					mp.prepare();
+				} catch (Exception e) {
+					e.printStackTrace();
+				} 
+				
+				mp.seekTo(oldPosition.get());
+		
+				
 			}
 			else if (!mp.isPlaying()){
 				mp.start();
@@ -131,7 +157,11 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		case AudioManager.AUDIOFOCUS_LOSS:
 			// Lost focus for an unbounded amount of time: stop playback and release media player
-			if (mp.isPlaying()) mp.stop();
+			if (mp.isPlaying()){
+				mp.stop();
+				oldPosition = new PositionTracker();
+				oldPosition.set(mp.getCurrentPosition());
+			}
 			mp.release();
 			mp = null;
 			break;
@@ -181,36 +211,42 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 	public void play(String songPath) {
-		mp.reset();
-		try {
-			mp.setDataSource(songPath);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} 
 		
-		mp.setOnPreparedListener(this);
-		mp.prepareAsync(); // prepare asynchronously to not block main thread
-		
-		// Used to read ID3 tags.
-		MediaMetadataRetriever acr = new MediaMetadataRetriever();
-		
-		try {
-			acr.setDataSource(songPath);
-			art = acr.getEmbeddedPicture();
-			Bitmap songImage = BitmapFactory
-					.decodeByteArray(art, 0, art.length);
+		int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+				AudioManager.AUDIOFOCUS_GAIN);
 
-
-		} catch (Exception e) {
-			songImage = null;
+		if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+			mp.reset();
+			try {
+				mp.setDataSource(songPath);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} 
+			
+			mp.setOnPreparedListener(this);
+			mp.prepareAsync(); // prepare asynchronously to not block main thread
+			
+			// Used to read ID3 tags.
+			MediaMetadataRetriever acr = new MediaMetadataRetriever();
+			
+			try {
+				acr.setDataSource(songPath);
+				art = acr.getEmbeddedPicture();
+				Bitmap songImage = BitmapFactory
+						.decodeByteArray(art, 0, art.length);
+	
+	
+			} catch (Exception e) {
+				songImage = null;
+			}
+			
+	//		Notification notification = new Notification.Builder(getApplicationContext())
+	//        .setContentTitle("Simple Music Player")
+	//        .setContentText("Test")
+	//        .setSmallIcon(R.drawable.ic_launcher)
+	//        .setLargeIcon(songImage)
+	//        .build();
 		}
-		
-//		Notification notification = new Notification.Builder(getApplicationContext())
-//        .setContentTitle("Simple Music Player")
-//        .setContentText("Test")
-//        .setSmallIcon(R.drawable.play)
-//        .setLargeIcon(songImage)
-//        .build();
 		
 	}
 
@@ -220,6 +256,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 	public boolean isNull() {
 		return mp == null;
+	}
+	
+	public void create() {
+		mp = new MediaPlayer();
 	}
 	
 	public PlayerOptions getPlayerOptions(){
