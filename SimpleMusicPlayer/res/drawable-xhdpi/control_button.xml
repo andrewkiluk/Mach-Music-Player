@@ -4,10 +4,10 @@
 <item
  android:state_selected="false"
     android:state_pressed="false"
-    android:drawable="@drawable/pause" />
+    android:drawable="@drawable/control" />
 <item android:state_pressed="true"
-    android:drawable="@drawable/pause_pressed" />
+    android:drawable="@drawable/control_pressed" />
 <item android:state_selected="true"
  android:state_pressed="false"
-    android:drawable="@drawable/pause_pressed" />
+    android:drawable="@drawable/control_pressed" />
 </selector>
