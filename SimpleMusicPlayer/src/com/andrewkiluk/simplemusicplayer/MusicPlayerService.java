@@ -12,6 +12,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,6 +23,7 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 
 
@@ -29,6 +31,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 	MediaPlayer mp = null;
 	private int currentSongIndex = 0;
+	private String currentSongTitle;
+	private String currentSongArtist;
 	private ArrayList<HashMap<String, String>> songsList;
 	
 	
@@ -47,6 +51,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	PositionTracker oldPosition = new PositionTracker();
 	
 	private PlayerOptions po;
+	private PlayerStatus ps;
 	
 	public BoundServiceListener mListener;
 	
@@ -54,12 +59,12 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	private boolean hasAudioFocus = true;
 	
 	private BroadcastReceiver headphoneReceiver;
-	//private PendingIntent headphonepi;
 	
 	byte[] art;
 	Bitmap songImage;
 	private int largeIconHeight;
 	private int largeIconWidth;
+	int NOTIFICATION_HIDE_MINUTES;
 	
 	public interface BoundServiceListener {
 		public void songComplete(int newCurrentSongIndex);
@@ -92,6 +97,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		mp.setOnCompletionListener(this);
 		
 		po = new PlayerOptions();
+		ps = new PlayerStatus();
 		
 		// Check the dimensions of notification icons.
 		
@@ -99,6 +105,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		Resources res = mContext.getResources();
 		largeIconHeight = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
 		largeIconWidth = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
+		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+		NOTIFICATION_HIDE_MINUTES = Integer.parseInt(sharedPrefs.getString("serviceSleepDelay", "NULL"));
 		
 		AlarmSetup();
 		HeadphoneUnplugListenerSetup();
@@ -211,7 +219,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 	
 	
-	// The following block sets up an alarm which can be called to stop this service from running in the foreground.
+	// The following block creates an alarm which can be called to stop this service from running in the foreground.
 	// This is to save system resources if the player has been idle for long enough.
 	private BroadcastReceiver alarmReceiver;
 	private AlarmManager am;
@@ -227,6 +235,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
      registerReceiver(alarmReceiver, new IntentFilter("com.andrewkiluk.servicealarm") );
      alarmpi = PendingIntent.getBroadcast( this, 0, new Intent("com.andrewkiluk.servicealarm"),0 );
      am = (AlarmManager)(this.getSystemService( Context.ALARM_SERVICE ));
+     ps.alarm_set = false;
 	}
 	
 	
@@ -264,12 +273,14 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 	public void setAlarm() {
 		// Set an alarm to stop running in foreground after 10 minutes.
-		am.set( AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000 * 60 * 10, alarmpi );  
+		am.set( AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000 * 60 * NOTIFICATION_HIDE_MINUTES, alarmpi );  
+		ps.alarm_set = true;
 	}
 	
 	public void cancelAlarm() {
 		// Cancel the alarm from setAlarm().
 		am.cancel(alarmpi);
+		ps.alarm_set = false;
 	}
 
 	public void prepare() {
@@ -291,6 +302,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 	
 	public void playSong(int songIndex){
+		currentSongArtist = songsList.get(songIndex).get("songArtist");
+		currentSongTitle = songsList.get(songIndex).get("songTitle");
 		play(songsList.get(songIndex).get("songPath"));
 		createNotification(songIndex);
 		currentSongIndex = songIndex;
@@ -323,7 +336,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		}
 	
 		    NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-		    builder.setContentTitle(songsList.get(songIndex).get("songTitle")).setContentText(songsList.get(songIndex).get("songArtist"))
+		    builder.setContentTitle(currentSongTitle).setContentText(currentSongArtist)
 		           .setWhen(System.currentTimeMillis())
 		           .setOngoing(true).setPriority(Notification.PRIORITY_HIGH)
 		           .setContentIntent(pendIntent)
@@ -333,6 +346,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 		notification.flags |= Notification.FLAG_NO_CLEAR;
 		startForeground(myID, notification);
+		ps.notification_set = true;
 	}
 
 	public void play(String songPath) {
@@ -371,6 +385,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 	public PlayerOptions getPlayerOptions(){
 		return po;
+	}
+	
+	public PlayerStatus getPlayerStatus(){
+		return ps;
 	}
 	
 	public boolean isShuffle() {
@@ -421,6 +439,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	public void updatePlayList(ArrayList<HashMap<String, String>> newSongsList, int newCurrentSongIndex){
 		songsList = newSongsList;
 		currentSongIndex = newCurrentSongIndex;
+		currentSongArtist = songsList.get(currentSongIndex).get("songArtist");
+		currentSongTitle = songsList.get(currentSongIndex).get("songTitle");
+		
 		
 	}
 	
@@ -440,6 +461,12 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 	
 
+}
+
+
+class PlayerStatus {
+	public boolean notification_set = false;
+	public boolean alarm_set = false;
 }
 
 

@@ -2,7 +2,6 @@ package com.andrewkiluk.simplemusicplayer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -79,11 +78,14 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	@Override
 	protected void onStart() {
 		super.onStart();
-		// Bind to MusicPlayerService
-		Intent intent = new Intent(this, MusicPlayerService.class);
-		bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-		
+		if (!mBound){
+			// Bind to MusicPlayerService
+			Intent intent = new Intent(this, MusicPlayerService.class);
+			bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+		}
+
 	}
+	
 	
 	@Override
 	protected void onDestroy() {
@@ -203,7 +205,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 						mp.pause();
 						// Changing button image to play button
 						btnPlay.setImageResource(R.drawable.play_button);
-						mService.setAlarm();
+						
 					}
 				}else{
 					// Resume song
@@ -342,11 +344,16 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	@Override
 	protected void onStop() {
 		super.onStop();
+		// Set an alarm if not playing
+		if (!mp.isPlaying()){
+			mService.setAlarm();
+		}
 		// Unbind from the service
 		if (mBound) {
 			unbindService(mConnection);
 			mBound = false;
 		}
+		
 	}
 
 	/**
@@ -397,6 +404,12 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				
 			}			
 			currentSongIndex = mService.getCurrentSongIndex();
+			
+			mService.cancelAlarm();
+			mService.createNotification(currentSongIndex);
+			PlayerStatus ps = mService.getPlayerStatus();
+			ps.notification_set = true;
+			ps.alarm_set = false;
 
 
 		}

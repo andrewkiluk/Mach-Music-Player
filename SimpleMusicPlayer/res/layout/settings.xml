@@ -7,6 +7,12 @@
                 android:summary="Directory to search for .mp3 files.\nRestart after changing."
                 android:key="library_location"
                 android:defaultValue="/media"/>
+        <EditTextPreference
+                android:title="Notification Delay"
+                android:summary="Time in minutes that notifications will stay if the player is paused and the app is inactive.\nRestart after changing."
+                android:inputType="number"
+                android:key="serviceSleepDelay"
+                android:defaultValue="5"/>
     </PreferenceCategory>
      
 </PreferenceScreen>

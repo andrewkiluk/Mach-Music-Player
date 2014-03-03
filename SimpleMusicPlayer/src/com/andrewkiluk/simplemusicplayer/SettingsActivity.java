@@ -16,19 +16,6 @@ public class SettingsActivity extends PreferenceActivity {
 
     }
     
-//    @Override
-//    protected void onActivityResult(int requestCode,
-//                                     int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if(resultCode == 100){
-//             library_location = data.getExtras().getInt("songIndex");
-//             SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-//        String library_location = sharedPrefs.getString("library_location", "NULL");
-//        }
-// 
-//    }
-    
-    
     
     public static class SettingsFragment extends PreferenceFragment {
 
