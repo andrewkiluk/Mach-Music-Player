@@ -5,6 +5,12 @@ The music apps I've found for Android have been bloated and / or constantly nagg
 
 This project started from an example at http://www.androidhive.info/.
 
+Version 0.9.4:
+--------------
+
+The system notification now has controls for audio playback. The notification is set whenever the service is in the foreground, which is user-configurable in the settings menu. The default is 5 minutes of inactivity.
+
+
 Version 0.9.3:
 --------------
 
