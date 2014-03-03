@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -20,6 +21,7 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 
 
@@ -28,6 +30,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	MediaPlayer mp = null;
 	private int currentSongIndex = 0;
 	private ArrayList<HashMap<String, String>> songsList;
+	
 	
 	// This stores the old playback location if the audio focus is lost.
 	// It has to be a class because integers in Java are fucking stupid.
@@ -43,13 +46,15 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 	PositionTracker oldPosition = new PositionTracker();
 	
-	
 	private PlayerOptions po;
 	
 	public BoundServiceListener mListener;
 	
 	public AudioManager audioManager;
 	private boolean hasAudioFocus = true;
+	
+	private BroadcastReceiver headphoneReceiver;
+	//private PendingIntent headphonepi;
 	
 	byte[] art;
 	Bitmap songImage;
@@ -82,8 +87,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	
 	@Override
 	public void onCreate(){
-		
-
+				
 		mp = new MediaPlayer();
 		mp.setOnCompletionListener(this);
 		
@@ -96,10 +100,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		largeIconHeight = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
 		largeIconWidth = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
 		
-		// Set up a listener to pause if headphones are unplugged.
-				IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-				HeadphoneUnplugListener receiver = new HeadphoneUnplugListener(mp);
-				registerReceiver( receiver, intentFilter );
+		AlarmSetup();
+		HeadphoneUnplugListenerSetup();
 
 		// Audio focus listener
 		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -173,7 +175,13 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		case AudioManager.AUDIOFOCUS_LOSS:
 			// Lost focus for an unbounded amount of time: stop playback and release media player
-			if (mp.isPlaying()){
+			boolean playing;
+			try{
+				playing = mp.isPlaying();
+			}catch(IllegalStateException e){
+				playing = false;
+			}
+			if (mp != null && playing){
 				mp.stop();
 				oldPosition = new PositionTracker();
 				oldPosition.set(mp.getCurrentPosition());
@@ -201,7 +209,47 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			break;
 		}
 	}
-
+	
+	
+	// The following block sets up an alarm which can be called to stop this service from running in the foreground.
+	// This is to save system resources if the player has been idle for long enough.
+	private BroadcastReceiver alarmReceiver;
+	private AlarmManager am;
+	private PendingIntent alarmpi;
+	
+	private void AlarmSetup(){
+		alarmReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context c, Intent i) {
+                   stopForeground(true);
+                   }
+            };
+     registerReceiver(alarmReceiver, new IntentFilter("com.andrewkiluk.servicealarm") );
+     alarmpi = PendingIntent.getBroadcast( this, 0, new Intent("com.andrewkiluk.servicealarm"),0 );
+     am = (AlarmManager)(this.getSystemService( Context.ALARM_SERVICE ));
+	}
+	
+	
+	// The following block sets up a listener to pause if headphones are unplugged.
+		
+	private void HeadphoneUnplugListenerSetup(){
+		headphoneReceiver = new BroadcastReceiver() {
+	        @Override
+	        public void onReceive(Context context, Intent intent) {
+	            if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+					if (mp.isPlaying()){
+						mp.pause();
+					}
+				}
+	        }
+	    };
+		registerReceiver(headphoneReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY) );
+		//headphonepi = PendingIntent.getBroadcast( this, 0, new Intent(AudioManager.ACTION_AUDIO_BECOMING_NOISY),0 );
+	}
+	
+	
+	
+	// The following functions are accessible to MusicPlayerActivity for communication with the UI
 	public void setDataSource(String input){
 		try{
 			mp.setDataSource(input);
@@ -212,6 +260,16 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 	public void reset() {
 		mp.reset();
+	}
+	
+	public void setAlarm() {
+		// Set an alarm to stop running in foreground after 10 minutes.
+		am.set( AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000 * 60 * 10, alarmpi );  
+	}
+	
+	public void cancelAlarm() {
+		// Cancel the alarm from setAlarm().
+		am.cancel(alarmpi);
 	}
 
 	public void prepare() {
@@ -367,29 +425,20 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 	
 
+	
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
+		am.cancel(alarmpi);
+		
+		unregisterReceiver(alarmReceiver);
+		unregisterReceiver(headphoneReceiver);
+		
+		mp.stop();
 		mp.release();
 	}
-
-	class HeadphoneUnplugListener extends BroadcastReceiver
-	{
-		private MediaPlayer mp;
-		// Constructor
-		public HeadphoneUnplugListener(MediaPlayer input){
-			mp = input;
-		}
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
-				if (mp.isPlaying()){
-					mp.pause();
-				}
-			}
-		}
-	}
+	
+	
 
 }
 

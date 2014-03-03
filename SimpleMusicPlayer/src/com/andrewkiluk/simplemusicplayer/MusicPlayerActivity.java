@@ -88,7 +88,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		// Bind to MusicPlayerService
+		// Stop MusicPlayerService
 		Intent i = new Intent(this, MusicPlayerService.class);
 		stopService(i);
 		
@@ -97,6 +97,12 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		if ((getIntent().getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != 0) { 
+	        // Activity was brought to front and not created, 
+	        // Thus finishing this will get us to the last viewed activity 
+	        finish(); 
+	        return; 
+	    } 
 		setContentView(R.layout.player);
 		
 		// Start the background service controlling the MediaPlayer object
@@ -197,6 +203,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 						mp.pause();
 						// Changing button image to play button
 						btnPlay.setImageResource(R.drawable.play_button);
+						mService.setAlarm();
 					}
 				}else{
 					// Resume song
@@ -204,6 +211,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 						mp.start();
 						// Changing button image to pause button
 						btnPlay.setImageResource(R.drawable.pause_button);
+						mService.cancelAlarm();
 					}
 				}
 
