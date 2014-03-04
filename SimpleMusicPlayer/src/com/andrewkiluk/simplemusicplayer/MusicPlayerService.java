@@ -95,6 +95,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		return mBinder;
 	}
 
+	private boolean firstRun = true;
 	@Override
 	public void onCreate(){
 
@@ -105,18 +106,21 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		ps = new PlayerStatus();
 		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		initializeNotificationBroadcastReceiver();
+		AlarmSetup();
+		HeadphoneUnplugListenerSetup();
 
 		// Check the dimensions of notification icons.
 
-		Context mContext = getApplicationContext();
-		Resources res = mContext.getResources();
-		largeIconHeight = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
-		largeIconWidth = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
-		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		NOTIFICATION_HIDE_MINUTES = Integer.parseInt(sharedPrefs.getString("serviceSleepDelay", "NULL"));
-
-		AlarmSetup();
-		HeadphoneUnplugListenerSetup();
+		if(firstRun){
+			Context mContext = getApplicationContext();
+			Resources res = mContext.getResources();
+			largeIconHeight = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
+			largeIconWidth = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
+			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+			NOTIFICATION_HIDE_MINUTES = Integer.parseInt(sharedPrefs.getString("serviceSleepDelay", "NULL"));
+			firstRun = false;			
+		}
+		
 
 		// Audio focus listener
 		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -214,7 +218,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			// Lost focus for a short time, but we have to stop
 			// playback. We don't release the media player because playback
 			// is likely to resume
-			if (mp.isPlaying()) mp.pause();
+			if (mp.isPlaying()){
+				pausePlayer();
+			}
 			hasAudioFocus = false;
 			break;
 
@@ -255,12 +261,19 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			public void onReceive(Context context, Intent intent) {
 				if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
 					if (mp.isPlaying()){
-						mp.pause();
+						pausePlayer();
 					}
 				}
 			}
 		};
 		registerReceiver(headphoneReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY) );
+	}
+	
+	public void pausePlayer()
+	{
+		mp.pause();
+		mListener.SetPlayButtonStatus("play");
+		createNotification(currentSongIndex, false);
 	}
 
 	public void initializeNotificationBroadcastReceiver(){
@@ -274,9 +287,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 					createNotification(currentSongIndex, true);
 				}
 				if (action == "com.andrewkiluk.notificationBroadcastReceiver.pause"){
-					mp.pause();
-					mListener.SetPlayButtonStatus("play");
-					createNotification(currentSongIndex, false);
+					pausePlayer();
 
 				}
 				if (action == "com.andrewkiluk.notificationBroadcastReceiver.next"){
@@ -315,10 +326,11 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 							currentSongIndex = currentSongIndex - 1;
 							playSong(currentSongIndex);
 
-						}else{
+						}else if (currentSongIndex == 0){
 							// play last song
-							playSong((songsList.size() - 1));
-							currentSongIndex = 0;
+							currentSongIndex = (songsList.size() - 1);
+							playSong(currentSongIndex);
+							
 						}
 					}
 					// Now tell the Activity to update the UI for the new song. 

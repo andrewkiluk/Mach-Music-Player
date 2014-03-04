@@ -108,7 +108,7 @@
 	        android:src="@drawable/ic_action_play"
 	        android:paddingTop="18dp"
 	        android:paddingBottom="18dp"
-	        android:paddingLeft="15dp"
+	        android:paddingLeft="12dp"
 	        android:paddingRight="12dp"
 
 	        android:onClick="playSong"/>
