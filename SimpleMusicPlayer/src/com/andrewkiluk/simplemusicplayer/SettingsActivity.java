@@ -11,10 +11,17 @@ public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        AppStatus.isVisible = true;
         getFragmentManager().beginTransaction().replace(android.R.id.content,
                 new SettingsFragment()).commit();
 
     }
+    
+    @Override
+	protected void onStop() {
+    	AppStatus.isVisible = false;
+		super.onStop();
+	}
     
     
     public static class SettingsFragment extends PreferenceFragment {

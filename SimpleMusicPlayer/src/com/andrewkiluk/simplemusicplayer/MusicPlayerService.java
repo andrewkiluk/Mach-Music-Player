@@ -101,6 +101,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		mp = new MediaPlayer();
 		mp.setOnCompletionListener(this);
+		
 
 		po = new PlayerOptions();
 		ps = new PlayerStatus();
@@ -274,6 +275,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		mp.pause();
 		mListener.SetPlayButtonStatus("play");
 		createNotification(currentSongIndex, false);
+		if(!AppStatus.isVisible){
+			setAlarm();
+		}
 	}
 
 	public void initializeNotificationBroadcastReceiver(){
@@ -366,7 +370,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 	public void setAlarm() {
-		// Set an alarm to stop running in foreground after 10 minutes.
+		// Set an alarm to stop running in foreground after NOTIFICATION_HIDE_MINUTES minutes.
 		am.set( AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000 * 60 * NOTIFICATION_HIDE_MINUTES, alarmpi );  
 		ps.alarm_set = true;
 	}
@@ -590,6 +594,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		unregisterReceiver(alarmReceiver);
 		unregisterReceiver(headphoneReceiver);
+		unregisterReceiver(notificationBroadcastReceiver);
 
 		mp.stop();
 		mp.release();
@@ -614,3 +619,4 @@ class PlayerOptions	{
 	public boolean isRepeat;
 	public boolean isShuffle;
 }
+

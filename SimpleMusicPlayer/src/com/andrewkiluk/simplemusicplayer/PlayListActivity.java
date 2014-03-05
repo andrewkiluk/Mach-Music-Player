@@ -31,6 +31,8 @@ public class PlayListActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playlist);
+        
+        AppStatus.isVisible = true;
 
         button_add_songs = (Button) findViewById(R.id.button_add_songs);
         
@@ -98,7 +100,17 @@ public class PlayListActivity extends ListActivity {
         
     }
     
+    
+    
     @Override
+	protected void onStop() {
+    	AppStatus.isVisible = false;
+		super.onStop();
+	}
+
+
+
+	@Override
     protected void onActivityResult(int requestCode,
                                      int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

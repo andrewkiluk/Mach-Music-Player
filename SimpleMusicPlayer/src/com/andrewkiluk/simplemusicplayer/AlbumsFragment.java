@@ -1,7 +1,6 @@
 package com.andrewkiluk.simplemusicplayer;
  
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -10,8 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
  
 public class AlbumsFragment extends ListFragment {
 	
@@ -24,17 +21,21 @@ public class AlbumsFragment extends ListFragment {
         View rootView = inflater.inflate(R.layout.fragment_albums, container, false);
         
          // looping through playlist
-        ArrayList<String> songnamesList = new ArrayList<String>();
-        for (Song song : LibraryInfo.songsList) {
-            // creating new HashMap
-             songnamesList.add(song.title());
+        ArrayList<String> albumNamesList = new ArrayList<String>();
+        if (LibraryInfo.isInitialized){
+        	for (Album album : LibraryInfo.albumsList) {
+                // creating new HashMap
+        		albumNamesList.add(album.title);
+            }
+     
+            // Adding menuItems to ListView
+            ListAdapter adapter = new ArrayAdapter<String>(getActivity(),
+                    R.layout.playlist_builder_item, albumNamesList);
+            setListAdapter(adapter);
         }
- 
-        // Adding menuItems to ListView
-        ListAdapter adapter = new ArrayAdapter<String>(getActivity(),
-                R.layout.playlist_item, songnamesList);
         
-        setListAdapter(adapter);
+        
+        
          
         return rootView;
     }

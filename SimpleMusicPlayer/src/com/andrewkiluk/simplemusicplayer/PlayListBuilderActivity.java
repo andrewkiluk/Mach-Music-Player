@@ -24,8 +24,12 @@ public class PlayListBuilderActivity extends FragmentActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playlist_builder);
         
+       	AppStatus.isVisible = true;
+
+        
         ActionBar bar = getActionBar();
-        bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#2b2b3b")));
+        bar.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.tabcolor)));
+        bar.setStackedBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.tabcolor)));
  
         // Initialization
         viewPager = (ViewPager) findViewById(R.id.pager);
@@ -60,6 +64,12 @@ public class PlayListBuilderActivity extends FragmentActivity implements
             }
         });
 }
+    
+    @Override
+	protected void onStop() {
+    	AppStatus.isVisible = false;
+		super.onStop();
+	}
     
     
 

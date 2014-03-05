@@ -109,6 +109,8 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	    } 
 		setContentView(R.layout.player);
 		
+		AppStatus.isVisible = true;
+		
 		// Start the background service controlling the MediaPlayer object
 		Intent i = new Intent(getApplicationContext(), MusicPlayerService.class);
 		startService(i);
@@ -143,6 +145,10 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		// These create instances of classes from the other files.
 		songManager = new SongsManager(library_location);
 		LibraryFiller libFill = new LibraryFiller(library_location);
+		if(libFill.loadLibrary() == -1){
+			Toast.makeText(getApplicationContext(), "Invalid Library folder, could not load music.",
+					   Toast.LENGTH_LONG).show();
+		}
 		utils = new Utilities();
 
 		// Listeners
@@ -350,9 +356,12 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	@Override
 	protected void onStop() {
 		super.onStop();
+		AppStatus.isVisible = false;
 		// Set an alarm if not playing
 		if (!mp.isPlaying()){
-			mService.setAlarm();
+			if (mBound){
+				mService.setAlarm();
+			}
 		}
 		// Unbind from the service
 		if (mBound) {
@@ -729,7 +738,9 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	
 }
 
-
+class AppStatus {
+	public static boolean isVisible;
+}
 
 
 
