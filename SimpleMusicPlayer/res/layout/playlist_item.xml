@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="@drawable/list_selector"
+    android:background="@drawable/list_item"
     android:padding="5dp">
     <TextView
         android:id="@+id/songTitle"

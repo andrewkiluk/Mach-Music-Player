@@ -6,17 +6,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 import android.media.MediaMetadataRetriever;
 import android.os.Environment;
-import android.util.Log;
 
 public class LibraryFiller {
 	// SDCard Path
 	String baseDir = Environment.getExternalStorageDirectory().getPath();
 	String RELATIVE_MEDIA_PATH;
 	String MEDIA_PATH;
-	private ArrayList<HashMap<String, String>> songsList = new ArrayList<HashMap<String, String>>();
 	MediaMetadataRetriever mmr = new MediaMetadataRetriever();
 
 
@@ -39,64 +38,86 @@ public class LibraryFiller {
 			int test = home.listFiles().length;     // This is to test that the directory is valid.
 		}
 		catch (Exception e) {
-			songsList = null;
 			return -1;
 		} 
 
-			
 
 
-			LibraryInfo libInfo = new LibraryInfo(); // We need to create this object in order for the static objects in the class to get initialized.
-			loadFiles(home);
 
-			
-			for (Song song : LibraryInfo.songsList){
+		LibraryInfo libInfo = new LibraryInfo(); // We need to create this object in order for the static objects in the class to get initialized.
+		loadFiles(home);
+
+
+		for (Song song : LibraryInfo.songsList){
+			artistFound = false;
+			for ( Artist currentArtist : LibraryInfo.artistsList){   // Add new artists to the artists list.
+				if(currentArtist.name.equals( song.artist() ) ){
+					artistFound = true;
+					break;
+				}
+			}
+			if (!artistFound){
+				LibraryInfo.artistsList.add( new Artist( song.artist() ) );
 				artistFound = false;
-				for ( Artist currentArtist : LibraryInfo.artistsList){   // Add new artists to the artists list.
-					if(currentArtist.name.equals( song.artist() ) ){
-						artistFound = true;
-						break;
-					}
-				}
-				if (!artistFound){
-					LibraryInfo.artistsList.add( new Artist( song.artist() ) );
-					artistFound = false;
-				}
-				// If the album is not new, add the current song to the corresponding album object.
-				albumFound = false;
-				for(Album currentAlbum : LibraryInfo.albumsList){
-					if(currentAlbum.title.equals( song.album() ) && currentAlbum.artist.equals( song.albumArtist() ) ){
-						currentAlbum.addSong(song);
-						albumFound = true;
-						break;
-					}
-				}
-				if(!albumFound){   // Album was not among current albums, so create a new album object.
-					Album newAlbum = new Album(song.album());
-					newAlbum.addSong(song);
-					newAlbum.title = song.album();
-					newAlbum.artist = song.albumArtist();
-					LibraryInfo.albumsList.add(newAlbum);
-				}
-
-
 			}
-			// Now we fill in all the Album lists in the Artist objects.
-
+			// If the album is not new, add the current song to the corresponding album object.
+			albumFound = false;
 			for(Album currentAlbum : LibraryInfo.albumsList){
-				for ( Artist currentArtist : LibraryInfo.artistsList){
-					if(currentAlbum.artist.equals( currentArtist.name ) ){
-						currentArtist.addAlbum(currentAlbum);
-						break;
-					}
+				if(currentAlbum.title.equals( song.album() ) && currentAlbum.artist.equals( song.albumArtist() ) ){
+					currentAlbum.addSong(song);
+					albumFound = true;
+					break;
 				}
 			}
-		
+			if(!albumFound){   // Album was not among current albums, so create a new album object.
+				Album newAlbum = new Album(song.album());
+				newAlbum.addSong(song);
+				newAlbum.title = song.album();
+				newAlbum.artist = song.albumArtist();
+				LibraryInfo.albumsList.add(newAlbum);
+			}
 
-		// Sort the albums by track number.
-		//		for (Album album : LibraryInfo.albumsList){
-		//			Collections.sort(album.songs);  // This may not be working, test!
-		//		}
+
+		}
+		// Now we fill in all the Album lists in the Artist objects.
+
+		for(Album currentAlbum : LibraryInfo.albumsList){
+			for ( Artist currentArtist : LibraryInfo.artistsList){
+				if(currentAlbum.artist.equals( currentArtist.name ) ){
+					currentArtist.addAlbum(currentAlbum);
+					break;
+				}
+			}
+		}
+
+
+		// Sort the album tracks.
+		for (Album album : LibraryInfo.albumsList){
+			Collections.sort(album.songs);  // This may not be working, test!
+		}
+		// Sort songs alphabetically
+		Collections.sort(LibraryInfo.songsList, new Comparator<Song>(){
+			public int compare(Song one, Song two) {
+				return one.songData.get("songTitle").compareTo(two.songData.get("songTitle"));
+			}
+		});
+		// Sort artists alphabetically
+		Collections.sort(LibraryInfo.artistsList, new Comparator<Artist>(){
+			public int compare(Artist one, Artist two) {
+				return one.name.compareTo(two.name);
+			}
+		});
+		// Sort albums alphabetically
+		Collections.sort(LibraryInfo.albumsList, new Comparator<Album>(){
+			public int compare(Album one, Album two) {
+				if ( one.title.compareTo(two.title) != 0){
+					return one.title.compareTo(two.title);
+				}
+				else {
+					return one.artist.compareTo(two.artist);
+				}
+			}
+		});
 
 		return 0;
 
@@ -134,18 +155,8 @@ public class LibraryFiller {
 					LibraryInfo.songsList.add(new Song(songData));
 				}
 			}
-
-
-			// This should add enumeration.
-			int i=1;
-			for(HashMap<String, String> entry : songsList){
-				String newName = Integer.toString(i) + ") " + entry.get("songTitle");
-				entry.put("playlistSongTitle", newName);
-				i++;
-			}
 		}
 	}
-
 }
 
 class TrackNumberComparator implements Comparator<Song>
@@ -162,7 +173,7 @@ class TrackNumberComparator implements Comparator<Song>
 
 class Song implements Comparable<Song>
 {
-	private HashMap<String, String> songData;
+	public HashMap<String, String> songData;
 
 	Song(String title, String artist, String album){
 		songData.put("songArtist", artist);
@@ -255,12 +266,19 @@ class LibraryInfo
 {
 	LibraryInfo(){
 		songsList = new ArrayList<Song>();
+		newSongs = new ArrayList<Song>();
 		artistsList = new ArrayList<Artist>();
 		albumsList = new ArrayList<Album>();
+		currentPlaylist = new ArrayList<Song>();
 		isInitialized = true;
+	}
+	public static void clearPlaylist(){
+		currentPlaylist = new ArrayList<Song>();
 	}
 	public static boolean isInitialized = false;
 	public static ArrayList<Song> songsList;
+	public static ArrayList<Song> currentPlaylist;
+	public static ArrayList<Song> newSongs;
 	public static ArrayList<Artist> artistsList;
 	public static ArrayList<Album> albumsList;
 }

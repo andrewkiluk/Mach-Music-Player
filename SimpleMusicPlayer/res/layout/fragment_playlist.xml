@@ -11,6 +11,6 @@
         android:layout_height="wrap_content"
         android:divider="#242424"
         android:dividerHeight="1dp"
-        android:listSelector="@drawable/list_selector" />
+        android:listSelector="@color/selected_orange" />
     
 </RelativeLayout>

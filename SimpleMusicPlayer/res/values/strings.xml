@@ -8,7 +8,9 @@
     <string name="album_name">--Album Title--</string>
     <string name="music_directory">/media/audio/mp3</string>
     <string name="add_songs_button_text">Add Songs</string>
+    <string name="add_selected_to_playlist_button_text">Add Selected</string>
     <string name="clear_playlist_button_text">Clear Playlist</string>
+    <string name="clear_selection_button_text">Clear Selection</string>
 
 
     

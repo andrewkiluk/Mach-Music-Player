@@ -2,59 +2,80 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:background="@color/footercolor">
- 
-    <ListView
-        android:id="@android:id/list"
-        android:layout_width="fill_parent"
+    android:background="@color/footercolor"
+    android:orientation="vertical" >
+
+    <!-- <ListView -->
+    <!-- android:id="@android:id/list" -->
+    <!-- android:layout_width="fill_parent" -->
+    <!-- android:layout_height="wrap_content" -->
+    <!-- android:layout_above="@+id/playlist_footer" -->
+    <!-- android:divider="#242424" -->
+    <!-- android:dividerHeight="1dp" -->
+    <!-- android:listSelector="@drawable/list_selector" /> -->
+
+
+    <!-- <fragment android:name="com.andrewkiluk.simplemusicplayer.PlaylistFragment" -->
+    <!-- android:id="@+id/playlist_fragment" -->
+    <!-- android:layout_width="fill_parent" -->
+    <!-- android:layout_height="fill_parent" /> -->
+
+    <FrameLayout
+        android:id="@+id/playlist_container"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/playlist_footer"
-        android:divider="#242424"
-        android:dividerHeight="1dp"
-        android:listSelector="@drawable/list_selector" />
-    
+        android:layout_width="match_parent" >
+    </FrameLayout>
+
     <!-- Playlist Footer -->
-	<LinearLayout 
-	    android:id="@+id/playlist_footer"
-	    android:layout_width="fill_parent"
-	    android:layout_height="50dp"
-	    android:layout_marginTop="10dp"
-	    android:layout_marginBottom="10dp"
-	    android:background="@color/footercolor"
+
+    <LinearLayout
+        android:id="@+id/playlist_footer"
+        android:layout_width="fill_parent"
+        android:layout_height="64dp"
         android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
-	    android:gravity="center">
+        android:layout_marginBottom="0dp"
+        android:layout_marginTop="0dp"
+        android:background="@color/tabcolor"
+        android:gravity="center"
+        android:orientation="horizontal" >
 
-	    <Button
-			android:id="@+id/button_add_songs" 
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content" 
-			android:layout_gravity="left"
-			android:layout_marginLeft="20dp" 
-			android:layout_marginRight="20dp"
-			android:background="@drawable/add_songs_button_background"
-			android:paddingLeft="20dp"
-			android:paddingRight="20dp"
-			android:text="@string/add_songs_button_text"
-			android:textColor="#eeeeee" />
-	    
-	    <Button
-			android:id="@+id/button_clear_playlist" 
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content" 
-			android:layout_gravity="right"
-			android:layout_marginLeft="20dp" 
-			android:layout_marginRight="20dp"
-			android:background="@drawable/add_songs_button_background"
-			android:paddingLeft="20dp"
-			android:paddingRight="20dp"
-			android:text="@string/clear_playlist_button_text"
-			android:textColor="#eeeeee" />
+        <LinearLayout
+            android:id="@+id/playlist_footer_buttons"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="7dp"
+            android:layout_marginTop="7dp"
+            android:background="@color/tabcolor"
+            android:gravity="center"
+            android:orientation="horizontal" >
 
-	
-	</LinearLayout>
-	
-	
- 
+            <Button
+                android:id="@+id/button_add_songs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:background="@drawable/add_songs_button_background"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:text="@string/add_songs_button_text"
+                android:textColor="#eeeeee" />
+
+            <Button
+                android:id="@+id/button_clear_playlist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:background="@drawable/add_songs_button_background"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:text="@string/clear_playlist_button_text"
+                android:textColor="#eeeeee" />
+        </LinearLayout>
+    </LinearLayout>
+
 </RelativeLayout>

@@ -28,8 +28,7 @@
         <service android:name=".MusicPlayerService" />
         
         <activity
-            android:name=".PlayListActivity" 
-        	android:noHistory="true" />
+            android:name=".PlayListActivity"  />
         <activity
             android:name=".SettingsActivity" />
         <activity
