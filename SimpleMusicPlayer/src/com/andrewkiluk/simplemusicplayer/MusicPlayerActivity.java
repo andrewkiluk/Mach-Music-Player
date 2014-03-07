@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -58,7 +59,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	private Handler mHandler = new Handler();
 	private Utilities utils;
 	private int currentSongIndex = 0;
-	
+
 	private MusicPlayerService mService;
 
 	boolean mBound = false; // Tells whether activity is bound to background service.
@@ -83,30 +84,30 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		}
 
 	}
-	
-	
+
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		// Stop MusicPlayerService
 		Intent i = new Intent(this, MusicPlayerService.class);
 		stopService(i);
-		
+
 	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if ((getIntent().getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != 0) { 
-	        // Activity was brought to front and not created, 
-	        // Thus finishing this will get us to the last viewed activity 
-	        finish(); 
-	        return; 
-	    } 
+			// Activity was brought to front and not created, 
+			// Thus finishing this will get us to the last viewed activity 
+			finish(); 
+			return; 
+		} 
 		setContentView(R.layout.player);
-		
+
 		AppStatus.isVisible = true;
-		
+
 		// Start the background service controlling the MediaPlayer object
 		Intent i = new Intent(getApplicationContext(), MusicPlayerService.class);
 		startService(i);
@@ -114,12 +115,10 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 		// Change the action bar color        
 		ActionBar bar = getActionBar();
-		bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#2b2b3b")));
+        bar.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.tabcolor)));
 
-		// Look up the directory to search for music from the preferences activity
-		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		String library_location = sharedPrefs.getString("library_location", "NULL");
-		
+
+
 		// All player buttons
 		btnPlay = (ImageButton) findViewById(R.id.playButton);
 		btnNext = (ImageButton) findViewById(R.id.nextButton);
@@ -133,18 +132,10 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		songAlbumLabel = (TextView) findViewById(R.id.songAlbum);
 		songCurrentDurationLabel = (TextView) findViewById(R.id.songCurrentDurationLabel);
 		songTotalDurationLabel = (TextView) findViewById(R.id.songTotalDurationLabel);
-		
+
 		// mp3Player
 		mp = new mp3Player();
 
-
-		// These create instances of classes from the other files.
-		LibraryFiller libFill = new LibraryFiller(library_location);
-		if(libFill.loadLibrary() == -1){
-			Toast.makeText(getApplicationContext(), "Invalid Library folder, could not load music.",
-					   Toast.LENGTH_LONG).show();
-		}
-		
 		utils = new Utilities();
 
 		// Listeners
@@ -153,9 +144,9 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 		// Do UI setup for the first item of the playlist
 		try {
-			
+
 			int songIndex = 0;
-			
+
 			// Used to read ID3 tags.
 			MediaMetadataRetriever acr = new MediaMetadataRetriever();
 
@@ -198,7 +189,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		 * */
 		btnPlay.setOnClickListener(new View.OnClickListener() {
 
-			
+
 			@Override
 			public void onClick(View arg0) {
 				// check for already playing
@@ -208,7 +199,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 						// Changing button image to play button
 						btnPlay.setImageResource(R.drawable.ic_action_play);
 						mService.createNotification(currentSongIndex, false);
-						
+
 					}
 				}else{
 					// Resume song
@@ -233,25 +224,29 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			@Override
 			public void onClick(View arg0) {
-				currentSongIndex = mService.getCurrentSongIndex();
-				// check if next song is there or not
-				if(currentSongIndex < (LibraryInfo.currentPlaylist.size() - 1)){
-					currentSongIndex = currentSongIndex + 1;
-					mService.playSong(currentSongIndex);
-					updateSongUI(currentSongIndex);
-					
-				}else{
-					// play first song
-					currentSongIndex = 0;
-					mService.playSong(currentSongIndex);
-					updateSongUI(currentSongIndex);
+				if(mBound){
+					currentSongIndex = mService.getCurrentSongIndex();
+					mService.playNext(currentSongIndex);
 				}
-
-
-
 			}
 		});
-
+		
+		//
+		//
+		//
+		//
+		//
+		//
+		//  Should probably create a stack when shuffle is pressed and push songs when completed????
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		
 		/**
 		 * Back button click event
 		 * Plays previous song by currentSongIndex - 1
@@ -262,20 +257,20 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			public void onClick(View arg0) {
 				if (mp.getCurrentPosition() > 3000){
 					mService.playSong(currentSongIndex);
-					updateSongUI(currentSongIndex);
+					updateSongUI(currentSongIndex, true);
 				}else{
 					currentSongIndex = mService.getCurrentSongIndex();
 					if(currentSongIndex > 0){
 						currentSongIndex = currentSongIndex - 1;
 						mService.playSong(currentSongIndex);
-						updateSongUI(currentSongIndex);
-						
+						updateSongUI(currentSongIndex, true);
+
 					}else{
 						// play last song
 						currentSongIndex = LibraryInfo.currentPlaylist.size() - 1;
 						mService.playSong(currentSongIndex);
-						updateSongUI(currentSongIndex);
-						
+						updateSongUI(currentSongIndex, true);
+
 					}
 				}
 
@@ -323,7 +318,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 					// make repeat to true
 					mService.getPlayerOptions().isShuffle = true;
 					makeToast("Shuffle is ON");
-					
+
 					// make shuffle to false
 					mService.getPlayerOptions().isRepeat = false;
 					btnShuffle.setBackgroundResource(R.drawable.control_button_selected);
@@ -362,8 +357,32 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			unbindService(mConnection);
 			mBound = false;
 		}
-		
+
+
 	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		AppStatus.isVisible = false;
+		int test = 7;
+		// Store the current playing state
+		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+		SharedPreferences.Editor editor = sharedPrefs.edit();
+		if (mBound){
+			editor.putInt("currentSongIndex", mService.getCurrentSongIndex());
+		}
+		//		editor.putInt("test", test);
+		//		editor.putInt("currentSongPosition", mp.getCurrentPosition());
+		//		String debug = "Numbers saved! They are " + Integer.toString(mp.getCurrentPosition()) + " " + Integer.toString(currentSongIndex) + " " +  Integer.toString(test);
+		//		Log.d("debug",debug);
+		//		editor.commit();
+
+
+
+	}
+
+
 
 	/**
 	 * Establish a connection with the background service.
@@ -382,11 +401,11 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			binder.setListener(new BoundServiceListener() {
 
 				@Override
-				public void changeUIforSong(int newCurrentSongIndex) {
-					updateSongUI(newCurrentSongIndex);
-					
+				public void changeUIforSong(int newCurrentSongIndex, boolean isPlaying) {
+					updateSongUI(newCurrentSongIndex, isPlaying);
+
 				}
-				
+
 				public void SetPlayButtonStatus(String status) {
 					if (status == "pause"){
 						btnPlay.setImageResource(R.drawable.ic_action_pause);
@@ -394,11 +413,11 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 					if (status == "play"){
 						btnPlay.setImageResource(R.drawable.ic_action_play);
 					}
-					
+
 				}
 
 			});
-			
+
 
 			// Okay, now we can do the setup stuff that requires the MediaPlayer class to exist.
 
@@ -408,18 +427,20 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 					mp.reset();
 					mp.setDataSource(LibraryInfo.currentPlaylist.get(songIndex).songData.get("songPath"));
 					mp.prepare();
-					
-					mService.updatePlayList(songIndex);
-					
+
+					mService.updateCurrentSong(songIndex);
+
 					mService.createNotification(0, false);
-					
+
 					firstBind = false;
 				}
 			}catch (Exception e) {
-				
+
 			}			
 			currentSongIndex = mService.getCurrentSongIndex();
-			
+
+			updateSongUI(currentSongIndex, mp.isPlaying());
+
 			mService.cancelAlarm();
 			if (mp.isPlaying()){
 				mService.createNotification(currentSongIndex, true);
@@ -427,7 +448,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			else{
 				mService.createNotification(currentSongIndex, false);
 			}
-			
+
 			PlayerStatus ps = mService.getPlayerStatus();
 			ps.notification_set = true;
 			ps.alarm_set = false;
@@ -478,10 +499,11 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		if(resultCode == 100){
 			currentSongIndex = data.getExtras().getInt("songIndex");
 			// update UI for new song
-			updateSongUI(currentSongIndex);
+			updateSongUI(currentSongIndex, true);
 			// Update playlist in MusicPlayerService and play selected song.
-			mService.updatePlayList(currentSongIndex);
+			mService.updateCurrentSong(currentSongIndex);
 			mService.playSong(currentSongIndex);
+
 		}
 
 	}
@@ -493,7 +515,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	 * Function to play a song
 	 * @param songIndex - index of song
 	 * */
-	public void updateSongUI(int songIndex){
+	public void updateSongUI(int songIndex, boolean isPlaying){
 		// Play song
 		try {
 
@@ -522,8 +544,14 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				albumFrame.setImageResource(R.drawable.album);
 			}
 
-			// Changing Button Image to pause image
-			btnPlay.setImageResource(R.drawable.ic_action_pause);
+			// Changing Button Image to correct image
+			if (isPlaying){
+				btnPlay.setImageResource(R.drawable.ic_action_pause);
+			}
+			else{
+				btnPlay.setImageResource(R.drawable.ic_action_play);
+			}
+
 
 			// set Progress bar values
 			songProgressBar.setProgress(0);
@@ -574,7 +602,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			}catch(IllegalStateException e){
 
 			}
-			
+
 		}
 	};
 
@@ -615,18 +643,18 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		}
 
 	}
-	
+
 	public void makeToast(String string){
 		final Toast toast = Toast.makeText(getApplicationContext(), string, Toast.LENGTH_SHORT);
 		toast.show();
 		Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-           @Override
-           public void run() {
-        	   toast.cancel(); 
-           }
-        }, 500);
-			
+		handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				toast.cancel(); 
+			}
+		}, 500);
+
 	}
 
 
@@ -642,7 +670,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			}
 			else return true;
 		}
-		
+
 		public void prepare()
 		{
 			if (mBound) {
@@ -724,12 +752,12 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				return 0;
 			}
 		}
-		
+
 
 
 	}
-	
-	
+
+
 }
 
 class AppStatus {

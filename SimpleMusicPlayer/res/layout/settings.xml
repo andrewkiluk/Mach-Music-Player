@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
- 
+
     <PreferenceCategory android:title="Settings" >
+
+<!--         <EditTextPreference -->
+<!--             android:defaultValue="/media" -->
+<!--             android:key="library_location" -->
+<!--             android:summary="Directory to search for .mp3 files.\nRestart after changing." -->
+<!--             android:title="Library Directory" /> -->
+
         <EditTextPreference
-                android:title="Library Directory"
-                android:summary="Directory to search for .mp3 files.\nRestart after changing."
-                android:key="library_location"
-                android:defaultValue="/media"/>
-        <EditTextPreference
-                android:title="Notification Delay"
-                android:summary="Time in minutes that notifications will stay if the player is paused and the app is inactive.\nRestart after changing."
-                android:inputType="number"
-                android:key="serviceSleepDelay"
-                android:defaultValue="5"/>
+            android:defaultValue="5"
+            android:inputType="number"
+            android:key="serviceSleepDelay"
+            android:summary="Time in minutes that notifications will stay if the player is paused and the app is inactive.\nRestart after changing."
+            android:title="Notification Delay" />
+
+        <Preference
+                      android:title="Reload Music Library" 
+                      android:summary="The app will be unresponsive for several seconds while your device is scanned.">
+
+            <intent 
+                android:action=".LibraryReloadActivity" 
+                android:targetPackage="com.andrewkiluk.simplemusicplayer"
+        		android:targetClass="com.andrewkiluk.simplemusicplayer.LibraryReloadActivity"
+                
+                />
+        </Preference>
     </PreferenceCategory>
-     
+
 </PreferenceScreen>

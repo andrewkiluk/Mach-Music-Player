@@ -23,7 +23,8 @@
     <FrameLayout
         android:id="@+id/playlist_container"
         android:layout_height="wrap_content"
-        android:layout_width="match_parent" >
+        android:layout_width="match_parent"
+        android:paddingBottom="64dp">
     </FrameLayout>
 
     <!-- Playlist Footer -->

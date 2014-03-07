@@ -17,7 +17,7 @@ import android.widget.ListView;
 public class AlbumsFragment extends ListFragment {
 
 	  public ArrayList<Album> albumsList;
-	  public int artistPosition = -10; // This flag means that the album was not reached by the artists menu, but directly, so don't find position through artists list.
+	  public int artistPosition; // This flag means that the album was not reached by the artists menu, but directly, so don't find position through artists list.
 	  
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -28,6 +28,7 @@ public class AlbumsFragment extends ListFragment {
         // "Constructor"
         artistPosition = getArguments().getInt("artistPosition");
 		  if (artistPosition == -1){
+			  artistPosition = -10;   // Reset to indicate later that we're not getting here from the artists menu. 
 			  albumsList = LibraryInfo.albumsList;
 		  }
 		  else{

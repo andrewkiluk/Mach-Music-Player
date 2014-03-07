@@ -1,46 +1,64 @@
-<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@color/bg"
-    android:gravity="center">
+    android:gravity="center" >
 
-    
     <!-- Player Header -->
+
     <RelativeLayout
         android:id="@+id/player_header_bg"
         android:layout_width="fill_parent"
         android:layout_height="65dip"
-        android:background="@color/footercolor"
         android:layout_alignParentTop="true"
+        android:background="@color/tabcolor"
         android:paddingLeft="5dp"
-        android:paddingRight="5dp">
- 
+        android:paddingRight="5dp" >
+
         <!-- Song Title and Artist -->
 
-        <TextView
-            android:id="@+id/songTitle"
+        <HorizontalScrollView
+            android:id="@+id/songTitleWrapper"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
             android:paddingLeft="10dp"
-            android:text="@string/song_name"
-            android:textColor="#eeeeee"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:paddingRight="50dp"
+            android:scrollbars="none" >
+
+            <TextView
+                android:id="@+id/songTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:singleLine="true"
+                android:text="@string/song_name"
+                android:textColor="#eeeeee"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+        </HorizontalScrollView>
+
+        <HorizontalScrollView
+            android:id="@+id/songArtistWrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/songTitleWrapper"
+            android:layout_below="@+id/songTitleWrapper"
+            android:paddingLeft="10dp"
+            android:paddingRight="50dp"
+            android:scrollbars="none" >
         <TextView
             android:id="@+id/songArtist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/songTitle"
-            android:layout_below="@+id/songTitle"
             android:layout_marginTop="10dp"
-            android:paddingLeft="10dp"
+            android:singleLine="true"
             android:text="@string/artist_name"
             android:textColor="#eeeeee"
             android:textSize="16sp"
             android:textStyle="bold" />
- 
+        </HorizontalScrollView>
+
         <!-- Playlist button -->
 
         <ImageButton
@@ -51,105 +69,100 @@
             android:layout_alignParentTop="true"
             android:background="@null"
             android:src="@drawable/btn_playlist" />
-
-        
-
     </RelativeLayout>
-    
+
     <!-- Song Thumbnail Image -->
-    
-    
-    
+
+
     <!-- Player Footer -->
-	<RelativeLayout 
-	    android:id="@+id/player_footer_bg"
-	    android:layout_width="fill_parent"
-	    android:layout_height="100dp"
-	    android:background="@color/footercolor"
+
+    <RelativeLayout
+        android:id="@+id/player_footer_bg"
+        android:layout_width="fill_parent"
+        android:layout_height="100dp"
         android:layout_alignParentBottom="true"
-	    android:gravity="center">	
-	    
-	    <ImageButton
-	        android:id="@+id/previousButton"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_centerVertical="true"
-	        android:layout_marginRight="20dp"
-	        android:layout_toLeftOf="@+id/playButton"
-	        android:background="@drawable/control_button"
-	        android:src="@drawable/ic_action_previous"
-	        android:paddingTop="8dp"
-	        android:paddingBottom="8dp"
-	        android:paddingLeft="12dp"
-	        android:paddingRight="12dp" />
-	    
-	    <ImageButton
-	        android:id="@+id/nextButton"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_centerVertical="true"
-	        android:layout_marginLeft="20dp"
-	        android:layout_toRightOf="@+id/playButton"
-	        android:background="@drawable/control_button"
-	        android:src="@drawable/ic_action_next" 
-	        android:paddingTop="8dp"
-	        android:paddingBottom="8dp"
-	        android:paddingLeft="12dp"
-	        android:paddingRight="12dp" />
-	    
-	    
-	    <ImageButton
-	        android:id="@+id/playButton"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_centerHorizontal="true"
-	        android:layout_centerVertical="true"
-	        android:background="@drawable/control_button"
-	        android:src="@drawable/ic_action_play"
-	        android:paddingTop="18dp"
-	        android:paddingBottom="18dp"
-	        android:paddingLeft="12dp"
-	        android:paddingRight="12dp"
+        android:background="@color/tabcolor"
+        android:gravity="center" >
 
-	        android:onClick="playSong"/>
-	    
+        <ImageButton
+            android:id="@+id/previousButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="20dp"
+            android:layout_toLeftOf="@+id/playButton"
+            android:background="@drawable/control_button"
+            android:paddingBottom="8dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="8dp"
+            android:src="@drawable/ic_action_previous" />
 
-	    
-	    <ImageButton
-	        android:id="@+id/shuffleButton"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_centerVertical="true"
-	        android:layout_marginRight="30dp"
-	        android:layout_toLeftOf="@+id/previousButton"
-	        android:background="@drawable/control_button"
-	        android:src="@drawable/ic_action_shuffle" />
-	    
-	    <ImageButton
-	        android:id="@+id/repeatButton"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_centerVertical="true"
-	        android:layout_marginLeft="30dp"
-	        android:layout_toRightOf="@+id/nextButton"
-	        android:background="@drawable/control_button"
-	        android:src="@drawable/ic_action_repeat" />
-	
-	</RelativeLayout>
-	
-	
-	<!-- Progress Bar/Seek bar -->
-    
+        <ImageButton
+            android:id="@+id/nextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="20dp"
+            android:layout_toRightOf="@+id/playButton"
+            android:background="@drawable/control_button"
+            android:paddingBottom="8dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="8dp"
+            android:src="@drawable/ic_action_next" />
+
+        <ImageButton
+            android:id="@+id/playButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/control_button"
+            android:onClick="playSong"
+            android:paddingBottom="18dp"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="18dp"
+            android:src="@drawable/ic_action_play" />
+
+        <ImageButton
+            android:id="@+id/shuffleButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="30dp"
+            android:layout_toLeftOf="@+id/previousButton"
+            android:background="@drawable/control_button"
+            android:src="@drawable/ic_action_shuffle" />
+
+        <ImageButton
+            android:id="@+id/repeatButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="30dp"
+            android:layout_toRightOf="@+id/nextButton"
+            android:background="@drawable/control_button"
+            android:src="@drawable/ic_action_repeat" />
+    </RelativeLayout>
+
+    <!-- Progress Bar/Seek bar -->
+
+
     <!-- Timer Display -->
+
     <LinearLayout
         android:id="@+id/timerDisplay"
-        android:layout_above="@+id/songProgressBar"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginRight="20dp"
+        android:layout_above="@+id/songProgressBar"
+        android:layout_marginBottom="10dp"
         android:layout_marginLeft="20dp"
-        android:layout_marginBottom="10dp">
+        android:layout_marginRight="20dp" >
+
         <!-- Current Duration Label -->
+
         <TextView
             android:id="@+id/songCurrentDurationLabel"
             android:layout_width="fill_parent"
@@ -157,8 +170,9 @@
             android:layout_weight="1"
             android:gravity="left"
             android:textColor="#eeeeee"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
         <!-- Total Duration Label -->
+
         <TextView
             android:id="@+id/songTotalDurationLabel"
             android:layout_width="fill_parent"
@@ -166,7 +180,7 @@
             android:layout_weight="1"
             android:gravity="right"
             android:textColor="#AA212121"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
@@ -191,23 +205,36 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/player_footer_bg"
-        android:gravity="center"
         android:layout_marginBottom="14dp"
+        android:gravity="center"
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
         android:progressDrawable="@drawable/progress_bar"
         android:thumb="@drawable/slider"
-        android:thumbOffset="4dp"  />
+        android:thumbOffset="4dp" />
 
-    <TextView
-        android:id="@+id/songAlbum"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/timerDisplay"
-        android:layout_centerHorizontal="true"
-        android:text="@string/album_name"
-        android:textColor="#eeeeee"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+    
+    <HorizontalScrollView
+            android:id="@+id/songAlbumWrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/songThumbnail"
+        	android:layout_centerHorizontal="true"
+        	android:paddingTop="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:scrollbars="none" >
+
+            <TextView
+                android:id="@+id/songAlbum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:singleLine="true"
+                android:text="@string/song_name"
+                android:textColor="#eeeeee"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+        </HorizontalScrollView>
 
 </RelativeLayout>

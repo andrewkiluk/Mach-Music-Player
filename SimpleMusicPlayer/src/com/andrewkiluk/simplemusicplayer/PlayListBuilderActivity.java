@@ -50,8 +50,8 @@ ActionBar.TabListener{
 		viewPager.setAdapter(mAdapter);
 		actionBar.setHomeButtonEnabled(false);
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);        
-		
-		
+
+
 
 		// Adding Tabs
 		for (String tab_name : tabs) {
@@ -83,10 +83,13 @@ ActionBar.TabListener{
 			public void onClick(View arg0) {
 				Intent intent = new Intent(getApplicationContext(), PlayListActivity.class);
 
-				for (Song song : LibraryInfo.newSongs){
-					LibraryInfo.currentPlaylist.add(song);
+				if (LibraryInfo.newSongs != null){
+
+					for (Song song : LibraryInfo.newSongs){
+						LibraryInfo.currentPlaylist.add(song);
+					}
 				}
-				LibraryInfo.newSongs = new ArrayList<Song>();
+					LibraryInfo.newSongs = new ArrayList<Song>();
 
 				setResult(200, intent);
 				// Closing PlayListBuilder
@@ -102,8 +105,8 @@ ActionBar.TabListener{
 				LibraryInfo.newSongs = new ArrayList<Song>();
 				mAdapter = new PlayListBuilderAdapter(getSupportFragmentManager());
 				viewPager.setAdapter(mAdapter);
-				
-				
+
+
 			}
 		});
 	}
@@ -113,43 +116,43 @@ ActionBar.TabListener{
 		AppStatus.isVisible = false;
 		super.onStop();
 	}
-	
-	
+
+
 	@Override
 	public void onBackPressed() {
-	    Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":"+viewPager.getCurrentItem());
-	    if (fragment != null) // could be null if not instantiated yet
-	    {
-	        if (fragment.getView() != null) {
-	            // Pop the backstack on the ChildManager if there is any. If not, close this activity as normal.
-	            if (!fragment.getChildFragmentManager().popBackStackImmediate()) {
-	                finish();
-	            }
-	        }
-	    }
+		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":"+viewPager.getCurrentItem());
+		if (fragment != null) // could be null if not instantiated yet
+		{
+			if (fragment.getView() != null) {
+				// Pop the backstack on the ChildManager if there is any. If not, close this activity as normal.
+				if (!fragment.getChildFragmentManager().popBackStackImmediate()) {
+					finish();
+				}
+			}
+		}
 	}
 
-	
-// Holy fuck what is with this support library bullshit!!?? 
-	
-//	@Override
-//	public void onTabReselected(Tab tab, FragmentTransaction ft) {
-//		// TODO Auto-generated method stub
-//
-//	}
-//
-//	@Override
-//	public void onTabSelected(Tab tab, FragmentTransaction ft) {
-//		// show respective fragment view
-//		viewPager.setCurrentItem(tab.getPosition());
-//
-//	}
-//
-//	@Override
-//	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-//		// TODO Auto-generated method stub
-//
-//	}
+
+	// Holy fuck what is with this support library bullshit!!?? 
+
+	//	@Override
+	//	public void onTabReselected(Tab tab, FragmentTransaction ft) {
+	//		// TODO Auto-generated method stub
+	//
+	//	}
+	//
+	//	@Override
+	//	public void onTabSelected(Tab tab, FragmentTransaction ft) {
+	//		// show respective fragment view
+	//		viewPager.setCurrentItem(tab.getPosition());
+	//
+	//	}
+	//
+	//	@Override
+	//	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+	//		// TODO Auto-generated method stub
+	//
+	//	}
 
 	@Override
 	public void onTabReselected(Tab tab, android.app.FragmentTransaction arg1) {
@@ -160,12 +163,12 @@ ActionBar.TabListener{
 	@Override
 	public void onTabSelected(Tab arg0, android.app.FragmentTransaction arg1) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void onTabUnselected(Tab arg0, android.app.FragmentTransaction arg1) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
