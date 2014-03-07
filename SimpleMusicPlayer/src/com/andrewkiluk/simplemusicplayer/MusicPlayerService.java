@@ -26,6 +26,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 
 public class MusicPlayerService extends Service implements OnCompletionListener, MediaPlayer.OnPreparedListener, AudioManager.OnAudioFocusChangeListener {
 
@@ -586,6 +588,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		unregisterReceiver(alarmReceiver);
 		unregisterReceiver(headphoneReceiver);
 		unregisterReceiver(notificationBroadcastReceiver);
+		
+		
+		Gson gson = new Gson();
+		
 
 		mp.stop();
 		mp.release();

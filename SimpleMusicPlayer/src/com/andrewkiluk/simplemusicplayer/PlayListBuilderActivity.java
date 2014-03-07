@@ -100,6 +100,10 @@ ActionBar.TabListener{
 			@Override
 			public void onClick(View arg0) {
 				LibraryInfo.newSongs = new ArrayList<Song>();
+				mAdapter = new PlayListBuilderAdapter(getSupportFragmentManager());
+				viewPager.setAdapter(mAdapter);
+				
+				
 			}
 		});
 	}

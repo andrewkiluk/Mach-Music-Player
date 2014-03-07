@@ -5,4 +5,6 @@
     android:layout_height="wrap_content"
     android:divider="#242424"
     android:dividerHeight="1dp"
-    android:listSelector="@color/selected_orange"/>
+    android:choiceMode="multipleChoice"
+    android:listSelector="@drawable/list_item_selected"
+    android:listChoiceIndicatorMultiple="@drawable/list_item_activated"/>

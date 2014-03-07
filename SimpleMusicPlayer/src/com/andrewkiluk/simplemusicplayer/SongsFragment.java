@@ -2,6 +2,7 @@ package com.andrewkiluk.simplemusicplayer;
 
 import java.util.ArrayList;
 
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.widget.ListView;
 public class SongsFragment extends ListFragment {
 	
 	private ListView lv;
+	boolean selectedStatus[];
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -31,10 +33,10 @@ public class SongsFragment extends ListFragment {
 			songsList = LibraryInfo.albumsList.get(albumPosition).songs;
 		}
 		else{
-			String output = String.valueOf(artistPosition) + " " + String.valueOf(albumPosition);
-			Log.d("SongsFrag", output);
 			songsList = LibraryInfo.artistsList.get(artistPosition).albums.get(albumPosition).songs;
 		}
+		
+		selectedStatus = new boolean[songsList.size()]; 
 
 		View rootView = inflater.inflate(R.layout.fragment_list, container, false);
 
@@ -76,7 +78,18 @@ public class SongsFragment extends ListFragment {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				lv.setItemChecked(position, true);
+				if(selectedStatus[position]){
+					lv.setItemChecked(position, false);
+					selectedStatus[position] = false;
+					View currentEntry = lv.getChildAt(position);
+					currentEntry.setBackgroundResource(R.color.footercolor);
+				}
+				else{
+					lv.setItemChecked(position, true);
+					selectedStatus[position] = true;
+					View currentEntry = lv.getChildAt(position);
+					currentEntry.setBackgroundResource(R.color.selected_orange);
+				}
 				Song newSong = songsList.get(position);
 				ArrayList<Song>localNewSongs = new ArrayList<Song> (LibraryInfo.newSongs);
 				if(localNewSongs.contains(newSong)){

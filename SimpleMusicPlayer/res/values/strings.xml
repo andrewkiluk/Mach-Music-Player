@@ -19,6 +19,8 @@
     <color name="tabcolor">#21212e</color>
     <color name="selected">#6ab5eb</color>
     <color name="selected_orange">#996632</color>
+    <color name="transparent">#80000000</color>
+    
     
     
 </resources>
