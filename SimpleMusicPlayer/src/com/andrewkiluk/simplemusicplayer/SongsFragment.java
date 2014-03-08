@@ -19,6 +19,7 @@ public class SongsFragment extends ListFragment {
 
 	private ListView lv;
 	boolean selectedStatus[];
+	ArrayAdapterItem adapter;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -55,12 +56,12 @@ public class SongsFragment extends ListFragment {
 		if (LibraryInfo.isInitialized){
 			for (Song song : songsList) {
 				// creating new HashMap
-				ObjectItemData[i] = new ObjectItem(i, song.title());
+				ObjectItemData[i] = new ObjectItem(i, song.title(), song);
 				i++;
 			}
 
 
-			ArrayAdapterItem adapter = new ArrayAdapterItem(getActivity(), R.layout.playlist_builder_item, ObjectItemData);
+			adapter = new ArrayAdapterItem(getActivity(), R.layout.list_view_row_item, ObjectItemData);
 
 
 
@@ -91,8 +92,8 @@ public class SongsFragment extends ListFragment {
 			super.onActivityCreated(savedInstanceState);
 
 			lv = getListView();
-
-			// listening for song selection 
+			
+			// listening for song selection
 			lv.setOnItemClickListener(new OnItemClickListener() {
 
 				@Override
@@ -100,13 +101,13 @@ public class SongsFragment extends ListFragment {
 						int position, long id) {
 					int viewPosition = position - lv.getFirstVisiblePosition();
 					Log.d("debug","First: "+Integer.toString(lv.getFirstVisiblePosition())+ " Pressed: " + Integer.toString(position));
-					if(selectedStatus[position]){
-						selectedStatus[position] = false;
+					if(adapter.selectedStatus[position]){
+						adapter.selectedStatus[position] = false;
 						View currentEntry = lv.getChildAt(viewPosition);
 						currentEntry.setBackgroundResource(R.color.footercolor);
 					}
 					else{
-						selectedStatus[position] = true;
+						adapter.selectedStatus[position] = true;
 						View currentEntry = lv.getChildAt(viewPosition);
 						currentEntry.setBackgroundResource(R.color.selected);
 					}
@@ -125,6 +126,40 @@ public class SongsFragment extends ListFragment {
 
 				}
 			});
+
+//			// listening for song selection 
+//			lv.setOnItemClickListener(new OnItemClickListener() {
+//
+//				@Override
+//				public void onItemClick(AdapterView<?> parent, View view,
+//						int position, long id) {
+//					int viewPosition = position - lv.getFirstVisiblePosition();
+//					Log.d("debug","First: "+Integer.toString(lv.getFirstVisiblePosition())+ " Pressed: " + Integer.toString(position));
+//					if(selectedStatus[position]){
+//						selectedStatus[position] = false;
+//						View currentEntry = lv.getChildAt(viewPosition);
+//						currentEntry.setBackgroundResource(R.color.footercolor);
+//					}
+//					else{
+//						selectedStatus[position] = true;
+//						View currentEntry = lv.getChildAt(viewPosition);
+//						currentEntry.setBackgroundResource(R.color.selected);
+//					}
+//					Song newSong = songsList.get(position);
+//					ArrayList<Song>localNewSongs = new ArrayList<Song> (LibraryInfo.newSongs);
+//					if(localNewSongs.contains(newSong)){
+//						for(Song song : localNewSongs){
+//							if(song.title().equals(newSong.title() ) && song.artist().equals(newSong.artist() ) && song.album().equals(newSong.album() )){
+//								LibraryInfo.newSongs.remove(LibraryInfo.newSongs.indexOf(song));
+//							}
+//						}
+//					}
+//					else{
+//						LibraryInfo.newSongs.add(newSong);   
+//					}
+//
+//				}
+//			});
 
 		}
 	}

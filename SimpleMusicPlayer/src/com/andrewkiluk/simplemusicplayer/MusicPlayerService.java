@@ -141,8 +141,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		// Check if there is a stored playlist; if so, load it, else initialize a new one.
 		String oldPlaylistJson = sharedPrefs.getString("currentPlaylist", "NULL");
-		String out2 = android.text.TextUtils.substring(oldPlaylistJson, 0, 100);
-		Log.d("Library", out2);
 
 		if (oldPlaylistJson != "NULL"){
 			Gson gson = new Gson();

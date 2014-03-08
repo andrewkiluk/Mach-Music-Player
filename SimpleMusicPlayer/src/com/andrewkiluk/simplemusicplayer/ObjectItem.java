@@ -13,11 +13,13 @@ public class ObjectItem {
 
 	public int itemId;
 	public String itemName;
+	public Song song;
 
 	// constructor
-	public ObjectItem(int itemId, String itemName) {
+	public ObjectItem(int itemId, String itemName, Song song) {
 		this.itemId = itemId;
 		this.itemName = itemName;
+		this.song = song;
 	}
 
 }

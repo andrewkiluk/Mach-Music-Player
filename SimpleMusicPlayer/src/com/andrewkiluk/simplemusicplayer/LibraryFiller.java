@@ -173,11 +173,7 @@ public class LibraryFiller {
 			return;
 		} else {
 			Log.d("debuggg", "Made it!");
-			int titleColumn = cursor.getColumnIndex(android.provider.MediaStore.Audio.Media.TITLE);
-			int idColumn = cursor.getColumnIndex(android.provider.MediaStore.Audio.Media._ID);
 			do {
-				long thisId = cursor.getLong(idColumn);
-				String thisTitle = cursor.getString(titleColumn);
 				int column_index = cursor.getColumnIndex(android.provider.MediaStore.MediaColumns.DATA);
 				String filepath = cursor.getString(column_index);
 				Log.d("debuggg", "Filepath: " + filepath);
