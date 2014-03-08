@@ -390,6 +390,22 @@ class Artist
 	public ArrayList<Album> albums;
 }
 
+class Playlist{
+	Playlist(){
+		songs = new ArrayList<Song>();
+	}
+	Playlist(Playlist playlist){
+		this.songs =  playlist.songs;
+		this.name = "Copy of " + playlist.name;
+	}
+	Playlist(ArrayList<Song> songs, String name){
+		this.songs =  songs;
+		this.name = name;
+	}
+	public ArrayList<Song> songs;
+	public String name;
+}
+
 class LibraryInfo
 {
 	LibraryInfo(){
@@ -397,15 +413,17 @@ class LibraryInfo
 		newSongs = new ArrayList<Song>();
 		artistsList = new ArrayList<Artist>();
 		albumsList = new ArrayList<Album>();
-		currentPlaylist = new ArrayList<Song>();
 		isInitialized = true;
+		currentPlaylist = new Playlist(new ArrayList<Song>(), "__CURRENT_PLAYLIST__");
+		playlists = new ArrayList<Playlist>();
 	}
 	public static void clearPlaylist(){
-		currentPlaylist = new ArrayList<Song>();
+		currentPlaylist = new Playlist();
 	}
 	public static boolean isInitialized = false;
 	public static ArrayList<Song> songsList;
-	public static ArrayList<Song> currentPlaylist;
+	public static Playlist currentPlaylist;
+	public static ArrayList<Playlist> playlists;
 	public static ArrayList<Song> newSongs;
 	public static ArrayList<Artist> artistsList;
 	public static ArrayList<Album> albumsList;

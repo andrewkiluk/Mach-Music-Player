@@ -10,6 +10,7 @@
     <string name="add_songs_button_text">Add Songs</string>
     <string name="add_selected_to_playlist_button_text">Add Selected</string>
     <string name="clear_playlist_button_text">Clear Playlist</string>
+    <string name="playlists_button_text">Playlists</string>
     <string name="clear_selection_button_text">Clear Selection</string>
 
 

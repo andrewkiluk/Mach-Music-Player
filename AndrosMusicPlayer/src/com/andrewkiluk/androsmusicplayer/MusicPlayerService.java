@@ -176,18 +176,20 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		} else if(po.isShuffle){
 			// shuffle is on - play a random song
 			Random rand = new Random();
-			currentSongIndex = rand.nextInt((LibraryInfo.currentPlaylist.size() - 1) - 0 + 1) + 0;
+			currentSongIndex = rand.nextInt((LibraryInfo.currentPlaylist.songs.size() - 1) - 0 + 1) + 0;
 			playSong(currentSongIndex);
 		} else{
 			// no repeat or shuffle ON - play next song
-			if(currentSongIndex < (LibraryInfo.currentPlaylist.size() - 1)){
-				currentSongIndex = currentSongIndex + 1;
-				playSong(currentSongIndex);
+			if(LibraryInfo.currentPlaylist != null){
+				if(currentSongIndex < (LibraryInfo.currentPlaylist.songs.size() - 1)){
+					currentSongIndex = currentSongIndex + 1;
+					playSong(currentSongIndex);
 
-			}else{
-				// play first song
-				playSong(0);
-				currentSongIndex = 0;
+				}else{
+					// play first song
+					playSong(0);
+					currentSongIndex = 0;
+				}
 			}
 		}
 
@@ -211,7 +213,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 					mp.setOnCompletionListener(this);
 
 					mp.reset();
-					String songPath = LibraryInfo.currentPlaylist.get(currentSongIndex).songData.get("songPath");
+					String songPath = LibraryInfo.currentPlaylist.songs.get(currentSongIndex).songData.get("songPath");
 					try {
 						mp.setDataSource(songPath);
 						mp.prepare();
@@ -345,7 +347,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 					if(po.isShuffle){
 						// shuffle is on - play a random song
 						Random rand = new Random();
-						currentSongIndex = rand.nextInt((LibraryInfo.currentPlaylist.size() - 1) - 0 + 1) + 0;
+						currentSongIndex = rand.nextInt((LibraryInfo.currentPlaylist.songs.size() - 1) - 0 + 1) + 0;
 						playSong(currentSongIndex);
 					} else{
 						// no shuffle ON - play previous song
@@ -355,7 +357,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 						}else if (currentSongIndex == 0){
 							// play last song
-							currentSongIndex = (LibraryInfo.currentPlaylist.size() - 1);
+							currentSongIndex = (LibraryInfo.currentPlaylist.songs.size() - 1);
 							playSong(currentSongIndex);
 
 						}
@@ -381,11 +383,11 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		if(po.isShuffle){
 			// shuffle is on - play a random song
 			Random rand = new Random();
-			currentSongIndex = rand.nextInt((LibraryInfo.currentPlaylist.size() - 1) - 0 + 1) + 0;
+			currentSongIndex = rand.nextInt((LibraryInfo.currentPlaylist.songs.size() - 1) - 0 + 1) + 0;
 			playSong(currentSongIndex);
 		} else{
 			// no shuffle ON - play next song
-			if(currentSongIndex < (LibraryInfo.currentPlaylist.size() - 1)){
+			if(currentSongIndex < (LibraryInfo.currentPlaylist.songs.size() - 1)){
 				currentSongIndex = currentSongIndex + 1;
 				playSong(currentSongIndex);
 
@@ -447,9 +449,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 	public void playSong(int songIndex){
 		try{
-			currentSongArtist = LibraryInfo.currentPlaylist.get(songIndex).songData.get("songArtist");
-			currentSongTitle = LibraryInfo.currentPlaylist.get(songIndex).songData.get("songTitle");
-			play(LibraryInfo.currentPlaylist.get(songIndex).songData.get("songPath"));
+			currentSongArtist = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songArtist");
+			currentSongTitle = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songTitle");
+			play(LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songPath"));
 			createNotification(songIndex, true);
 			currentSongIndex = songIndex;
 			if (mListener!=null){
@@ -476,7 +478,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		try {
 			// Used to read ID3 tags and retrieve album art.
 			MediaMetadataRetriever acr = new MediaMetadataRetriever();
-			acr.setDataSource(LibraryInfo.currentPlaylist.get(songIndex).songData.get("songPath"));
+			acr.setDataSource(LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songPath"));
 			art = acr.getEmbeddedPicture();
 			songImage = BitmapFactory
 					.decodeByteArray(art, 0, art.length);
@@ -622,8 +624,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 	public void updateCurrentSong(int newCurrentSongIndex){
 		currentSongIndex = newCurrentSongIndex;
-		currentSongArtist = LibraryInfo.currentPlaylist.get(currentSongIndex).songData.get("songArtist");
-		currentSongTitle = LibraryInfo.currentPlaylist.get(currentSongIndex).songData.get("songTitle");
+		currentSongArtist = LibraryInfo.currentPlaylist.songs.get(currentSongIndex).songData.get("songArtist");
+		currentSongTitle = LibraryInfo.currentPlaylist.songs.get(currentSongIndex).songData.get("songTitle");
 
 
 	}
@@ -646,8 +648,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		SharedPreferences.Editor editor = sharedPrefs.edit();
 		editor.putString("currentPlaylist", currentPlaylistJson);
 		editor.commit();
-
-
 
 
 		mp.stop();

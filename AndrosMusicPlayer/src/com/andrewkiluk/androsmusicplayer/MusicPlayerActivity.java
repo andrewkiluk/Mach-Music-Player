@@ -153,15 +153,15 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			final ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
 
 			// Displaying Song title
-			String songTitle = LibraryInfo.currentPlaylist.get(songIndex).songData.get("songTitle");
-			String songArtist = LibraryInfo.currentPlaylist.get(songIndex).songData.get("songArtist");
-			String songAlbum = LibraryInfo.currentPlaylist.get(songIndex).songData.get("songAlbum");
+			String songTitle = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songTitle");
+			String songArtist = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songArtist");
+			String songAlbum = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songAlbum");
 			songTitleLabel.setText(songTitle);
 			songArtistLabel.setText(songArtist);
 			songAlbumLabel.setText(songAlbum);
 
 			try {
-				acr.setDataSource(LibraryInfo.currentPlaylist.get(songIndex).songData.get("songPath"));
+				acr.setDataSource(LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songPath"));
 				art = acr.getEmbeddedPicture();
 				Bitmap songImage = BitmapFactory
 						.decodeByteArray(art, 0, art.length);
@@ -267,7 +267,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 					}else{
 						// play last song
-						currentSongIndex = LibraryInfo.currentPlaylist.size() - 1;
+						currentSongIndex = LibraryInfo.currentPlaylist.songs.size() - 1;
 						mService.playSong(currentSongIndex);
 						updateSongUI(currentSongIndex, true);
 
@@ -421,7 +421,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				if(firstBind){
 					int songIndex = 0;
 					mp.reset();
-					mp.setDataSource(LibraryInfo.currentPlaylist.get(songIndex).songData.get("songPath"));
+					mp.setDataSource(LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songPath"));
 					mp.prepare();
 
 					mService.updateCurrentSong(songIndex);
@@ -521,15 +521,15 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			final ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
 
 			// Displaying Song title
-			String songTitle = LibraryInfo.currentPlaylist.get(songIndex).songData.get("songTitle");
-			String songArtist = LibraryInfo.currentPlaylist.get(songIndex).songData.get("songArtist");
-			String songAlbum = LibraryInfo.currentPlaylist.get(songIndex).songData.get("songAlbum");
+			String songTitle = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songTitle");
+			String songArtist = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songArtist");
+			String songAlbum = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songAlbum");
 			songTitleLabel.setText(songTitle);
 			songArtistLabel.setText(songArtist);
 			songAlbumLabel.setText(songAlbum);
 
 			try {
-				acr.setDataSource(LibraryInfo.currentPlaylist.get(songIndex).songData.get("songPath"));
+				acr.setDataSource(LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songPath"));
 				art = acr.getEmbeddedPicture();
 				Bitmap songImage = BitmapFactory
 						.decodeByteArray(art, 0, art.length);

@@ -12,7 +12,7 @@ public class LibraryReloadActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d("Library", "Library Reloaded");
-		ArrayList<Song> currentPlaylist = LibraryInfo.currentPlaylist;
+		Playlist currentPlaylist = LibraryInfo.currentPlaylist;
 		LibraryFiller libFillAll = new LibraryFiller(getApplicationContext());
 		libFillAll.loadLibrary();
 		LibraryInfo.currentPlaylist = currentPlaylist;

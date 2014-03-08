@@ -91,7 +91,7 @@ ActionBar.TabListener{
 				if (LibraryInfo.newSongs != null){
 
 					for (Song song : LibraryInfo.newSongs){
-						LibraryInfo.currentPlaylist.add(song);
+						LibraryInfo.currentPlaylist.songs.add(song);
 					}
 				}
 					LibraryInfo.newSongs = new ArrayList<Song>();

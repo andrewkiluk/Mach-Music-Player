@@ -21,7 +21,7 @@
     <!-- android:layout_height="fill_parent" /> -->
 
     <FrameLayout
-        android:id="@+id/playlist_container"
+        android:id="@+id/playlists_container"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:paddingBottom="64dp">
@@ -52,21 +52,7 @@
             android:orientation="horizontal" >
 
             <Button
-                android:id="@+id/button_add_songs"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:background="@drawable/add_songs_button_background"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:text="@string/add_songs_button_text"
-                android:textSize="15sp"
-                android:textColor="#eeeeee" />
-
-            <Button
-                android:id="@+id/button_clear_playlist"
+                android:id="@+id/button_save_playlist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
@@ -75,23 +61,10 @@
                 android:background="@drawable/add_songs_button_background"
                 android:paddingLeft="20dp"
                 android:paddingRight="20dp"
-                android:text="@string/clear_playlist_button_text"
+                android:text="Save Current Playlist"
                 android:textSize="15sp"
                 android:textColor="#eeeeee" />
             
-            <Button
-                android:id="@+id/button_playlists"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
-                android:background="@drawable/add_songs_button_background"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:text="@string/playlists_button_text"
-                android:textSize="15sp"
-                android:textColor="#eeeeee" />
         </LinearLayout>
     </LinearLayout>
 

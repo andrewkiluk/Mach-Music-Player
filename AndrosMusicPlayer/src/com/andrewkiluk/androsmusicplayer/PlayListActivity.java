@@ -19,6 +19,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
     
     private Button button_add_songs;
     private Button button_clear_playlist;
+    private Button button_playlists;
  
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -35,6 +36,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 
         button_add_songs = (Button) findViewById(R.id.button_add_songs);
         button_clear_playlist = (Button) findViewById(R.id.button_clear_playlist);
+        button_playlists = (Button) findViewById(R.id.button_playlists);
         
         ActionBar bar = getActionBar();
         bar.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.tabcolor)));
@@ -62,6 +64,15 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
                 PlaylistFragment refresh = new PlaylistFragment();
                 ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.androsmusicplayer.PlaylistFragment"); 
                 ft.commit(); 
+            }
+        });
+        
+        button_playlists.setOnClickListener(new View.OnClickListener() {
+          	 
+            @Override
+            public void onClick(View arg0) {
+            	Intent i = new Intent(getApplicationContext(), PlayListManagerActivity.class);
+                startActivityForResult(i, 200);
             }
         });
         

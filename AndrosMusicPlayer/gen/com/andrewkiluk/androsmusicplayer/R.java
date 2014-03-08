@@ -79,28 +79,31 @@ public final class R {
         public static final int slider=0x7f02002f;
     }
     public static final class id {
-        public static final int action_settings=0x7f090023;
+        public static final int action_settings=0x7f090026;
         public static final int albumFrame=0x7f090016;
-        public static final int button_add_selected=0x7f090020;
+        public static final int button_add_selected=0x7f090021;
         public static final int button_add_songs=0x7f09001c;
         public static final int button_clear_playlist=0x7f09001d;
-        public static final int button_clear_selection=0x7f090021;
+        public static final int button_clear_selection=0x7f090022;
+        public static final int button_playlists=0x7f09001e;
+        public static final int button_save_playlist=0x7f090025;
         public static final int label=0x7f090001;
         public static final int list_frame=0x7f090000;
         public static final int loading_image=0x7f090002;
         public static final int loading_text=0x7f090003;
         public static final int menu_settings=0x7f090004;
         public static final int nextButton=0x7f09000e;
-        public static final int pager=0x7f090022;
+        public static final int pager=0x7f090023;
         public static final int playButton=0x7f09000d;
         public static final int player_footer_bg=0x7f09000b;
         public static final int player_header_bg=0x7f090005;
         public static final int playlistButton=0x7f09000a;
-        public static final int playlist_builder_footer=0x7f09001e;
-        public static final int playlist_builder_footer_buttons=0x7f09001f;
+        public static final int playlist_builder_footer=0x7f09001f;
+        public static final int playlist_builder_footer_buttons=0x7f090020;
         public static final int playlist_container=0x7f090019;
         public static final int playlist_footer=0x7f09001a;
         public static final int playlist_footer_buttons=0x7f09001b;
+        public static final int playlists_container=0x7f090024;
         public static final int previousButton=0x7f09000c;
         public static final int repeatButton=0x7f090010;
         public static final int shuffleButton=0x7f09000f;
@@ -128,7 +131,8 @@ public final class R {
         public static final int playlist_builder=0x7f030008;
         public static final int playlist_builder_item=0x7f030009;
         public static final int playlist_item=0x7f03000a;
-        public static final int settings=0x7f03000b;
+        public static final int playlist_manager=0x7f03000b;
+        public static final int settings=0x7f03000c;
     }
     public static final class menu {
         public static final int main=0x7f080000;
@@ -141,8 +145,9 @@ public final class R {
         public static final int app_name=0x7f050000;
         public static final int artist_name=0x7f050002;
         public static final int clear_playlist_button_text=0x7f050008;
-        public static final int clear_selection_button_text=0x7f050009;
+        public static final int clear_selection_button_text=0x7f05000a;
         public static final int music_directory=0x7f050005;
+        public static final int playlists_button_text=0x7f050009;
         public static final int song_name=0x7f050003;
     }
     public static final class style {

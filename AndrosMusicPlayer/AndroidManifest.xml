@@ -44,6 +44,8 @@
         <activity
             android:name=".PlayListActivity"  />
         <activity
+            android:name=".PlayListManagerActivity"  />
+        <activity
             android:name=".SettingsActivity" />
         <activity
             android:name=".PlayListBuilderActivity" />

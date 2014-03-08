@@ -30,9 +30,9 @@ public class LoadingScreenActivity extends Activity {
 
 
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		
-//		PlayerStatus ps = new PlayerStatus(); // This needs to be initialized so we can access its static variables later.
-		
+
+		//		PlayerStatus ps = new PlayerStatus(); // This needs to be initialized so we can access its static variables later.
+
 		oldsongsListJson = sharedPrefs.getString("songsList", "NULL");
 		if (oldsongsListJson != "NULL"){
 
@@ -48,27 +48,42 @@ public class LoadingScreenActivity extends Activity {
 			String oldPlaylistJson = sharedPrefs.getString("currentPlaylist", "NULL");
 
 			if (oldPlaylistJson != "NULL"){
-				//				Gson gson = new Gson();
-				//				Type listType = new TypeToken<ArrayList<Song>>() {}.getType();
-				LibraryInfo.currentPlaylist = gson.fromJson(oldPlaylistJson, listType);
+				LibraryInfo.currentPlaylist = gson.fromJson(oldPlaylistJson, Playlist.class);
 				Log.d("Library", "Playlist Loaded");
 				Log.d("Library", "Playlist Json: " + oldPlaylistJson);
 			}
 			else{
-				LibraryInfo.currentPlaylist = new ArrayList<Song>();
+				LibraryInfo.currentPlaylist = new Playlist();
 				PlayerStatus.playlistReset = true;
 			}
+
+			// test to make sure it's a valid playlist, else initialize to an empty one
 			try{
-				LibraryInfo.currentPlaylist.get(0);
+				LibraryInfo.currentPlaylist.songs.get(0);
 			}
 			catch(Exception e){
-				LibraryInfo.currentPlaylist = new ArrayList<Song>();
+				LibraryInfo.currentPlaylist = new Playlist();
 				PlayerStatus.playlistReset = true;
 			}
+
+			// Load the list of stored playlists
+
+			String oldPlaylistsJson = sharedPrefs.getString("playlists", "NULL");
+
+			if (oldPlaylistsJson != "NULL"){
+				Type playlistType = new TypeToken<ArrayList<Playlist>>() {}.getType();
+				LibraryInfo.playlists = gson.fromJson(oldPlaylistsJson, playlistType);
+			}
+			else{
+				LibraryInfo.currentPlaylist = new Playlist();
+				PlayerStatus.playlistReset = true;
+			}
+			
 			Intent i = new Intent(LoadingScreenActivity.this, MusicPlayerActivity.class);
 			startActivity(i);
 			finish();
-
+			
+			
 		}
 		else{
 
@@ -126,12 +141,11 @@ public class LoadingScreenActivity extends Activity {
 			String oldPlaylistJson = sharedPrefs.getString("currentPlaylist", "NULL");
 
 			if (oldPlaylistJson != "NULL"){
-				Type listType = new TypeToken<ArrayList<Song>>() {}.getType();
-				LibraryInfo.currentPlaylist = gson.fromJson(oldPlaylistJson, listType);
+				LibraryInfo.currentPlaylist = gson.fromJson(oldPlaylistJson, Playlist.class);
 				Log.d("Library", "Playlist Loaded");
 			}
 			else{
-				LibraryInfo.currentPlaylist = new ArrayList<Song>();
+				LibraryInfo.currentPlaylist = new Playlist();
 			}
 
 

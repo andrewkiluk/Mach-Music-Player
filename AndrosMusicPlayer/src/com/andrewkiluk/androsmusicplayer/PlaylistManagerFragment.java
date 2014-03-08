@@ -21,23 +21,23 @@ import android.widget.ListView;
 
 
 
-public class PlaylistFragment extends ListFragment {
+public class PlaylistManagerFragment extends ListFragment {
 
 	public interface TouchListener {
-		public void songPicked(int songIndex);
+		public void playlistPicked(int position);
 	}
 
-	int currentSongPosition;
+	int playlistPosition ;
 
-	TouchListener onSongPickedListener;
+	TouchListener onPlaylistPickedListener;
 
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		try {
-			onSongPickedListener = (TouchListener) activity;
+			onPlaylistPickedListener = (TouchListener) activity;
 		} catch (ClassCastException e) {
-			throw new ClassCastException(activity.toString() + " must implement onSongPickedListener");
+			throw new ClassCastException(activity.toString() + " must implement TouchListener");
 		}
 	}
 
@@ -48,17 +48,16 @@ public class PlaylistFragment extends ListFragment {
 		View rootView = inflater.inflate(R.layout.fragment_playlist, container, false);
 
 		// looping through playlist
-		ArrayList<String> songnamesList = new ArrayList<String>();
+		ArrayList<String> playlistnamesList = new ArrayList<String>();
 		if (LibraryInfo.isInitialized){
-			int i=0;
-			for (Song song : LibraryInfo.currentPlaylist.songs) {
+			for (Playlist playlist : LibraryInfo.playlists) {
 				// creating new HashMap
-				songnamesList.add(Integer.toString(++i) + ") " + song.title());
+				playlistnamesList.add(playlist.name);
 			}
 
 			// Adding menuItems to ListView
 			ListAdapter adapter = new ArrayAdapter<String>(getActivity(),
-					R.layout.playlist_builder_item, songnamesList);
+					R.layout.playlist_builder_item, playlistnamesList);
 			setListAdapter(adapter);
 		}
 
@@ -79,7 +78,7 @@ public class PlaylistFragment extends ListFragment {
 				// getting listitem index
 				int songIndex = position;
 
-				onSongPickedListener.songPicked(songIndex);
+				onPlaylistPickedListener.playlistPicked(songIndex);
 
 				// Send message to playlist activity that song has been chosen
 			}
@@ -91,28 +90,28 @@ public class PlaylistFragment extends ListFragment {
 			public boolean onItemLongClick(AdapterView<?> parent, View view,
 					int position, long id) {
 
-				currentSongPosition = position;
+				playlistPosition = position;
 				AlertDialog.Builder alertDialog = new AlertDialog.Builder(view.getContext());
-				alertDialog.setTitle("Remove Song");
-				alertDialog.setMessage("Remove song from current playlist?");
+				alertDialog.setTitle("Delete Playlist");
+				alertDialog.setMessage("Delete current playlist?");
 				// set positive button: Yes message
 				alertDialog.setPositiveButton("Ok",new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog,int id) {
 						dialog.cancel();
 
-						// Remove song
-						Song oldSong = LibraryInfo.currentPlaylist.songs.get(currentSongPosition);
-						Playlist localPlaylist = new Playlist (LibraryInfo.currentPlaylist);
-						for(Song song : localPlaylist.songs){
-							if(song.title().equals(oldSong.title() ) && song.artist().equals(oldSong.artist() ) && song.album().equals(oldSong.album() )){
-								LibraryInfo.currentPlaylist.songs.remove(LibraryInfo.currentPlaylist.songs.indexOf(song));
+						// Remove playlist
+						Playlist oldPlaylist = LibraryInfo.playlists.get(playlistPosition);
+						ArrayList<Playlist> localPlaylistList = new ArrayList<Playlist> (LibraryInfo.playlists);
+						for(Playlist playlist : localPlaylistList){
+							if(playlist.name.equals(oldPlaylist.name)){
+								LibraryInfo.playlists.remove(LibraryInfo.playlists.indexOf(playlist));
 							}
 						}
 						
 						// Update UI
 						final FragmentTransaction ft = getFragmentManager().beginTransaction(); 
-			            PlaylistFragment refresh = new PlaylistFragment();
-			            ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.androsmusicplayer.PlaylistFragment"); 
+			            PlaylistManagerFragment refresh = new PlaylistManagerFragment();
+			            ft.replace(R.id.playlists_container, refresh, "com.andrewkiluk.androsmusicplayer.PlaylistFragment"); 
 			            ft.commit(); 
 
 					}
