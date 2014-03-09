@@ -5,6 +5,19 @@ The music apps I've found for Android have been bloated and / or constantly nagg
 
 This project started from an example at http://www.androidhive.info/.
 
+Version 1.0:
+--------------
+
+I've finished all of the main goals, plus all of my reach goals, plus some other things I thought of. This thing is now looking really good:
+
+ - It has selectable Big Picture Style notifications showing album art.
+
+ - It scans the storage for music files on the initial run, then reloads its memory of the library from a JSON String saved in the preferences. The library can be rebuilt by pressing a button in the settings. It's a little unsatisfying to have to manually reload, but it makes boot time super short, and a primary goal of this project was to built something that feels as lightweight as possible.
+
+ - It supports playlists.
+
+ There are some cosmetic things I might do from here -- I'll get some opinions on the interface design and what kinds of thigns I should add to the settings. But that's all pretty minor.
+
 Version 0.9.4:
 --------------
 
