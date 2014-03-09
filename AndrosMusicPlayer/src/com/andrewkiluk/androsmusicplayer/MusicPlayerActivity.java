@@ -58,7 +58,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	// Handler to update UI timer, progress bar etc,.
 	private Handler mHandler = new Handler();
 	private Utilities utils;
-	private int currentSongIndex = 0;
 
 	private MusicPlayerService mService;
 
@@ -198,7 +197,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 						mp.pause();
 						// Changing button image to play button
 						btnPlay.setImageResource(R.drawable.ic_action_play);
-						mService.createNotification(currentSongIndex, false);
+						mService.createNotification(false);
 
 					}
 				}else{
@@ -208,7 +207,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 						// Changing button image to pause button
 						btnPlay.setImageResource(R.drawable.ic_action_pause);
 						mService.cancelAlarm();
-						mService.createNotification(currentSongIndex, true);
+						mService.createNotification(true);
 					}
 				}
 
@@ -225,8 +224,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			@Override
 			public void onClick(View arg0) {
 				if(mBound){
-					currentSongIndex = mService.getCurrentSongIndex();
-					mService.playNext(currentSongIndex);
+					mService.playNext();
 				}
 			}
 		});
@@ -256,20 +254,19 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			@Override
 			public void onClick(View arg0) {
 				if (mp.getCurrentPosition() > 3000){
-					mService.playSong(currentSongIndex);
-					updateSongUI(currentSongIndex, true);
+					mService.playSong();
+					updateSongUI(true);
 				}else{
-					currentSongIndex = mService.getCurrentSongIndex();
-					if(currentSongIndex > 0){
-						currentSongIndex = currentSongIndex - 1;
-						mService.playSong(currentSongIndex);
-						updateSongUI(currentSongIndex, true);
+					if(LibraryInfo.currentSongIndex > 0){
+						LibraryInfo.currentSongIndex = LibraryInfo.currentSongIndex - 1;
+						mService.playSong();
+						updateSongUI(true);
 
 					}else{
 						// play last song
-						currentSongIndex = LibraryInfo.currentPlaylist.songs.size() - 1;
-						mService.playSong(currentSongIndex);
-						updateSongUI(currentSongIndex, true);
+						LibraryInfo.currentSongIndex = LibraryInfo.currentPlaylist.songs.size() - 1;
+						mService.playSong();
+						updateSongUI(true);
 
 					}
 				}
@@ -361,25 +358,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 	}
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-		AppStatus.isVisible = false;
-		// Store the current playing state
-		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		SharedPreferences.Editor editor = sharedPrefs.edit();
-		if (mBound){
-			editor.putInt("currentSongIndex", mService.getCurrentSongIndex());
-		}
-				editor.putInt("currentSongPosition", mp.getCurrentPosition());
-				editor.commit();
-
-
-
-	}
-
-
-
 	/**
 	 * Establish a connection with the background service.
 	 * */
@@ -397,8 +375,8 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			binder.setListener(new BoundServiceListener() {
 
 				@Override
-				public void changeUIforSong(int newCurrentSongIndex, boolean isPlaying) {
-					updateSongUI(newCurrentSongIndex, isPlaying);
+				public void changeUIforSong(boolean isPlaying) {
+					updateSongUI(isPlaying);
 
 				}
 
@@ -424,25 +402,22 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 					mp.setDataSource(LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songPath"));
 					mp.prepare();
 
-					mService.updateCurrentSong(songIndex);
+					mService.updateCurrentSong();
 
-					mService.createNotification(0, false);
+					mService.createNotification(false);
 
 					firstBind = false;
 				}
 			}catch (Exception e) {
 
 			}			
-			currentSongIndex = mService.getCurrentSongIndex();
-
-//			updateSongUI(currentSongIndex, mp.isPlaying());
 
 			mService.cancelAlarm();
 			if (mp.isPlaying()){
-				mService.createNotification(currentSongIndex, true);
+				mService.createNotification(true);
 			}
 			else{
-				mService.createNotification(currentSongIndex, false);
+				mService.createNotification(false);
 			}
 
 //			PlayerStatus ps = mService.getPlayerStatus();
@@ -493,12 +468,11 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if(resultCode == 100){
-			currentSongIndex = data.getExtras().getInt("songIndex");
+			LibraryInfo.currentSongIndex = data.getExtras().getInt("songIndex");
 			// update UI for new song
-			updateSongUI(currentSongIndex, true);
+			updateSongUI(true);
 			// Update data in MusicPlayerService and play selected song.
-			mService.updateCurrentSong(currentSongIndex);
-			mService.playSong(currentSongIndex);
+			mService.playSong();
 
 		}
 
@@ -511,7 +485,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	 * Function to play a song
 	 * @param songIndex - index of song
 	 * */
-	public void updateSongUI(int songIndex, boolean isPlaying){
+	public void updateSongUI(boolean isPlaying){
 		// Play song
 		try {
 
@@ -521,15 +495,15 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			final ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
 
 			// Displaying Song title
-			String songTitle = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songTitle");
-			String songArtist = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songArtist");
-			String songAlbum = LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songAlbum");
+			String songTitle = LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songTitle");
+			String songArtist = LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songArtist");
+			String songAlbum = LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songAlbum");
 			songTitleLabel.setText(songTitle);
 			songArtistLabel.setText(songArtist);
 			songAlbumLabel.setText(songAlbum);
 
 			try {
-				acr.setDataSource(LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songPath"));
+				acr.setDataSource(LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songPath"));
 				art = acr.getEmbeddedPicture();
 				Bitmap songImage = BitmapFactory
 						.decodeByteArray(art, 0, art.length);

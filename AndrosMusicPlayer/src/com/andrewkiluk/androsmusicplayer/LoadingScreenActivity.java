@@ -47,8 +47,9 @@ public class LoadingScreenActivity extends Activity {
 
 			if (oldPlaylistJson != "NULL"){
 				LibraryInfo.currentPlaylist = gson.fromJson(oldPlaylistJson, Playlist.class);
-				Log.d("Library", "Playlist Loaded");
-				Log.d("Library", "Playlist Json: " + oldPlaylistJson);
+				if(LibraryInfo.currentPlaylist.songs.size() == 0){
+					PlayerStatus.playlistReset = true;
+				}
 			}
 			else{
 				LibraryInfo.currentPlaylist = new Playlist();

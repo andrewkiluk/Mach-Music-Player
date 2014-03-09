@@ -3,7 +3,7 @@
     <item>
         <clip>
         <bitmap
-            android:src="@drawable/progress_bar_blue"
+            android:src="@drawable/progress_bar_past"
             android:tileMode="repeat"
             android:antialias="true"
             android:dither="false"

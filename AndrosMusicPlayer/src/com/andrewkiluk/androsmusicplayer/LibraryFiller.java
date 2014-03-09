@@ -179,6 +179,15 @@ public class LibraryFiller {
 				int column_index = cursor.getColumnIndex(android.provider.MediaStore.MediaColumns.DATA);
 				String filepath = cursor.getString(column_index);
 				Log.d("debuggg", "Filepath: " + filepath);
+				
+				if(filepath.contains("/notifications/")
+						|| filepath.contains("/Notifications/")
+						|| filepath.contains("/Ringtones/")
+						|| filepath.contains("/ringtones/")
+						|| filepath.contains("/Android/data")
+						){
+					continue;
+				}
 
 				HashMap<String, String> songData = new HashMap<String, String>();
 				// Populate the hashmap with ID3 info.
@@ -218,6 +227,7 @@ public class LibraryFiller {
 //					continue;
 //				}
 //				songData.put("Duration", Integer.toString(mp.getDuration()));
+				
 								
 
 
@@ -277,8 +287,7 @@ public class LibraryFiller {
 //					continue;
 //				}
 //				songData.put("Duration", Integer.toString(mp.getDuration()));
-
-
+					
 					// Adding each song to SongList
 					LibraryInfo.songsList.add(new Song(songData));
 				}
