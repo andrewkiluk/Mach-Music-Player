@@ -117,7 +117,6 @@ public class AlbumsFragment extends ListFragment {
 						dialog.cancel();
 						ArrayList<Song> indexList;
 						if(origin.equals("artists")){ // If we got here from the artists tab
-							Log.d("test","added from artists");
 							indexList = LibraryInfo.artistsList.get(artistPosition).albums.get(tempAlbumPosition).songs;
 //							selectAllSongsInAlbumPosition[tempAlbumPosition] = true;
 							for(int i=0 ; i<LibraryInfo.artistsList.get(artistPosition).albums.get(tempAlbumPosition).songs.size() ; i++){

@@ -23,8 +23,20 @@ import com.google.gson.Gson;
 public class PlayListManagerActivity extends FragmentActivity implements PlaylistManagerFragment.TouchListener {
 	// Songs list
 	public String library_location;
+	boolean unique;
 
 	private Button button_save_playlist;
+
+	private void nameError(){
+
+		new AlertDialog.Builder(PlayListManagerActivity.this)
+		.setTitle("Name Conflict")
+		.setMessage("Choose a name which isn't already in use.")
+		.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+			}
+		}).show();
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -48,12 +60,13 @@ public class PlayListManagerActivity extends FragmentActivity implements Playlis
 
 			@Override
 			public void onClick(View arg0) {
-				LibraryInfo.clearPlaylist();
 				final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
+
 
 				// Open a dialogue box, check that the name is unique, save the playlist to LibraryInfo. 
 
 				final EditText input = new EditText(PlayListManagerActivity.this);
+
 
 				new AlertDialog.Builder(PlayListManagerActivity.this)
 				.setTitle("Save Current Playlist")
@@ -63,30 +76,49 @@ public class PlayListManagerActivity extends FragmentActivity implements Playlis
 					public void onClick(DialogInterface dialog, int whichButton) {
 						Editable value = input.getText(); 
 						String newName = value.toString();
-						boolean unique = true;
+						unique = true;
 						for( Playlist playlist : LibraryInfo.playlists){
 							if(playlist.name.equals(newName)){
 								unique = false;
 							}
 						}
 						if(unique){
+
+
+							// SOMEHOW, it's reading the current playlist as empty. Wat.
+
+
 							Playlist newPlaylist = new Playlist(LibraryInfo.currentPlaylist.songs, newName);
+
 							LibraryInfo.playlists.add(newPlaylist);
+
+
+
+
+
+
 							// Probably sort playlists by name!!
 						}
+
 
 						PlaylistManagerFragment refresh = new PlaylistManagerFragment();
 						ft.replace(R.id.playlists_container, refresh, "com.andrewkiluk.androsmusicplayer.PlaylistManagerFragment"); 
 						ft.commit(); 
+						if(!unique){
+							nameError();
+						}
 
 
 					}
+
 				}).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
 						// Do nothing.
 					}
 				}).show();
+
 			}
+
 		});
 
 	}
@@ -94,11 +126,6 @@ public class PlayListManagerActivity extends FragmentActivity implements Playlis
 	// This method is called when the playlist manager fragment detects a playlist choice.
 	@Override
 	public void playlistPicked(int position) {
-
-		LibraryInfo.currentPlaylist = new Playlist(LibraryInfo.playlists.get(position).songs, "__CURRENT_PLAYLIST__"); 
-		
-
-		Log.d("test","playlistname = " +LibraryInfo.playlists.get(position).name);
 
 		// Starting new intent
 		Intent in = new Intent(getApplicationContext(),

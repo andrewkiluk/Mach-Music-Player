@@ -24,7 +24,6 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -38,6 +37,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	private NotificationManager mNotificationManager;
 	private NotificationCompat.Builder notificationBuilder;
 	private BroadcastReceiver notificationBroadcastReceiver;
+	
+	private SharedPreferences sharedPrefs;
 
 
 
@@ -112,8 +113,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		int oldSongIndex = sharedPrefs.getInt("currentSongIndex", -1);
 
 		if (oldSongIndex != -1){
-			String debug = "Number loaded! It is " + Integer.toString(currentSongIndex);
-			Log.d("debugger",debug);
 			currentSongIndex = oldSongIndex;
 		}
 		else{
@@ -124,7 +123,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		//		}
 
 		if (mListener!=null){
-			Log.d("debug","Go!!!!");
 			if(mListener !=  null){
 				mListener.changeUIforSong(currentSongIndex, false);		
 			}
@@ -338,7 +336,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 				}
 				if (action == "com.andrewkiluk.notificationBroadcastReceiver.next"){
-					Log.d("NOTE","NEXT PRESSED");
 					playNext(currentSongIndex);
 
 
@@ -497,6 +494,22 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		PendingIntent piPrevious = PendingIntent.getBroadcast(this, 0, new Intent("com.andrewkiluk.notificationBroadcastReceiver.previous"), 0);
 
 
+		//
+		//
+		//
+		//
+		//
+		//
+		// Make the priority custom?????
+		//
+		//
+		//
+		//
+		//
+		//
+		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+		boolean big_notifications = sharedPrefs.getBoolean("big_notifications", true);
+		
 		notificationBuilder = new NotificationCompat.Builder(this);
 		notificationBuilder.setOngoing(true)
 		.setPriority(Notification.PRIORITY_HIGH)
@@ -505,7 +518,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		.setContentTitle(currentSongTitle)
 		.setContentText(currentSongArtist)
 		.setSmallIcon(R.drawable.ic_action_play);
-		if (songImage != null){
+		if (big_notifications && songImage != null){
 			notificationBuilder.setStyle(new NotificationCompat.BigPictureStyle()
 			.setSummaryText(currentSongArtist)
 			.bigPicture(songImage));
@@ -644,7 +657,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		Gson gson = new Gson();
 		String currentPlaylistJson = gson.toJson(LibraryInfo.currentPlaylist);
 
-		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		SharedPreferences.Editor editor = sharedPrefs.edit();
 		editor.putString("currentPlaylist", currentPlaylistJson);
 		editor.commit();

@@ -31,8 +31,6 @@ public class LoadingScreenActivity extends Activity {
 
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-		//		PlayerStatus ps = new PlayerStatus(); // This needs to be initialized so we can access its static variables later.
-
 		oldsongsListJson = sharedPrefs.getString("songsList", "NULL");
 		if (oldsongsListJson != "NULL"){
 
@@ -78,12 +76,12 @@ public class LoadingScreenActivity extends Activity {
 				LibraryInfo.currentPlaylist = new Playlist();
 				PlayerStatus.playlistReset = true;
 			}
-			
+
 			Intent i = new Intent(LoadingScreenActivity.this, MusicPlayerActivity.class);
 			startActivity(i);
 			finish();
-			
-			
+
+
 		}
 		else{
 

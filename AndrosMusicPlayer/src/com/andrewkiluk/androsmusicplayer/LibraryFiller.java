@@ -302,6 +302,17 @@ class TrackNumberComparator implements Comparator<Song>
 class Song implements Comparable<Song>
 {
 	public HashMap<String, String> songData;
+	
+	Song(Song oldCopy){
+		HashMap<String, String> newCopy = new HashMap<String, String>();
+		for (String key : oldCopy.songData.keySet()) {
+		    newCopy.put(key, oldCopy.songData.get(key));
+		}
+		this.songData = newCopy;
+	}
+	
+	
+	
 
 	Song(String title, String artist, String album){
 		songData.put("songArtist", artist);
@@ -392,16 +403,24 @@ class Artist
 
 class Playlist{
 	Playlist(){
-		songs = new ArrayList<Song>();
+		this.songs = new ArrayList<Song>();
+		this.name = "<No name>";
 	}
 	Playlist(Playlist playlist){
-		this.songs =  playlist.songs;
-		this.name = "Copy of " + playlist.name;
+		Playlist newCopy = new Playlist(playlist.songs, playlist.name);
+		this.songs = newCopy.songs;
+		this.name = newCopy.name;
 	}
 	Playlist(ArrayList<Song> songs, String name){
-		this.songs =  songs;
+		ArrayList<Song> newSongs = new ArrayList<Song>();
+		for(Song song  : songs){
+			Song newSong = new Song(song);
+			newSongs.add(newSong);
+		}
+		this.songs = newSongs;
 		this.name = name;
 	}
+	
 	public ArrayList<Song> songs;
 	public String name;
 }

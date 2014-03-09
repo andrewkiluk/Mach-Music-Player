@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -75,12 +76,13 @@ public class PlaylistManagerFragment extends ListFragment {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				// getting listitem index
-				int songIndex = position;
+				
+				
+				LibraryInfo.currentPlaylist = new Playlist(LibraryInfo.playlists.get(position).songs, "__CURRENT_PLAYLIST__"); 
+				
+				onPlaylistPickedListener.playlistPicked(position);
 
-				onPlaylistPickedListener.playlistPicked(songIndex);
-
-				// Send message to playlist activity that song has been chosen
+				// Send message to playlist activity that playlist has been chosen
 			}
 		});
 

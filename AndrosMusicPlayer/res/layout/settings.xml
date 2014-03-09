@@ -15,6 +15,13 @@
             android:key="serviceSleepDelay"
             android:summary="Time in minutes that notifications will stay if the player is paused and the app is inactive.\nRestart after changing."
             android:title="Notification Delay" />
+        
+        <CheckBoxPreference
+            android:key="big_notifications"
+            android:title="Big Picture Notifications"
+            android:summary="Display album art in the Big Picture format in notifications."
+            android:defaultValue="true"
+             />
 
         <Preference
             android:summary="The app will be unresponsive for several seconds while your device is scanned."

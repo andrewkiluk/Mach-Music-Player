@@ -33,9 +33,9 @@ public class SongsFragment extends ListFragment {
 
 		else if(origin.equals("albums")){ //   Means that we're getting here from the albums menu
 			songsList = LibraryInfo.albumsList.get(albumPosition).songs;
-//			if (getArguments().getBoolean("SelectAll")){
-//				selectAllStart = true;
-//			}
+			//			if (getArguments().getBoolean("SelectAll")){
+			//				selectAllStart = true;
+			//			}
 		}
 		else{ // Means that we're getting here from the artists menu
 			songsList = LibraryInfo.artistsList.get(artistPosition).albums.get(albumPosition).songs;
@@ -65,7 +65,6 @@ public class SongsFragment extends ListFragment {
 			if(origin.equals("artists")){  // We're getting here from an artists fragment
 				for(i=0; i< LibraryInfo.artistsList.get(artistPosition).albums.get(albumPosition).songs.size(); i++){
 					if (SelectionStatus.artistsListSelection[artistPosition][albumPosition][i] == true){
-						Log.d("test", "artist on");
 						adapter.selectedStatus[i] = true;						
 					}
 				}
@@ -73,7 +72,6 @@ public class SongsFragment extends ListFragment {
 			if(origin.equals("albums")){  // We're getting here from an albums fragment
 				for(i=0; i< LibraryInfo.albumsList.get(albumPosition).songs.size(); i++){
 					if (SelectionStatus.albumsListSelection[albumPosition][i] == true){
-						Log.d("test", "album on");
 						adapter.selectedStatus[i] = true;						
 					}
 				}
@@ -81,7 +79,6 @@ public class SongsFragment extends ListFragment {
 			if(origin.equals("songs")){  // We're getting here from an songs fragment (it gets destroyed if we go all the way to the right!)
 				for(i=0; i< LibraryInfo.songsList.size(); i++){
 					if (SelectionStatus.songsListSelection[i] == true){
-						Log.d("test", "song on");
 						adapter.selectedStatus[i] = true;						
 					}
 				}
@@ -120,7 +117,7 @@ public class SongsFragment extends ListFragment {
 				if(adapter.selectedStatus[position]){
 					adapter.selectedStatus[position] = false;
 					view.setBackgroundResource(R.color.footercolor);
-					
+
 					if(origin.equals("artists")){  // We're getting here from an artists fragment
 						SelectionStatus.artistsListSelection[artistPosition][albumPosition][position] = false;
 					}
@@ -130,24 +127,24 @@ public class SongsFragment extends ListFragment {
 					if (origin.equals("songs")){
 						SelectionStatus.songsListSelection[position] = false;
 					}
-					
-					
+
+
 				}
 				else{
 					adapter.selectedStatus[position] = true;
 					view.setBackgroundResource(R.color.selected);
-					
+
 					if(origin.equals("artists")){  // We're getting here from an artists fragment
 						SelectionStatus.artistsListSelection[artistPosition][albumPosition][position] = true;
 					}
 					if(origin.equals("albums")){  // We're getting here from an albums fragment
 						SelectionStatus.albumsListSelection[albumPosition][position] = true;
 					}
-					if (origin.equals("songs")){
+					if (origin.equals("songs")){ // We're getting here by swiping left to the songs fragment
 						SelectionStatus.songsListSelection[position] = true;
 					}
-					
-					
+
+
 				}
 				Song newSong = songsList.get(position);
 				ArrayList<Song>localNewSongs = new ArrayList<Song> (LibraryInfo.newSongs);
@@ -163,47 +160,9 @@ public class SongsFragment extends ListFragment {
 				else{
 					LibraryInfo.newSongs.add(newSong);   
 				}
-//				boolean currentStatus = false;
-//				
-//				currentStatus = true; //!currentStatus;
 
 
-		}
-	});
-
-		//			// listening for song selection 
-		//			lv.setOnItemClickListener(new OnItemClickListener() {
-		//
-		//				@Override
-		//				public void onItemClick(AdapterView<?> parent, View view,
-		//						int position, long id) {
-		//					int viewPosition = position - lv.getFirstVisiblePosition();
-		//					Log.d("debug","First: "+Integer.toString(lv.getFirstVisiblePosition())+ " Pressed: " + Integer.toString(position));
-		//					if(selectedStatus[position]){
-		//						selectedStatus[position] = false;
-		//						View currentEntry = lv.getChildAt(viewPosition);
-		//						currentEntry.setBackgroundResource(R.color.footercolor);
-		//					}
-		//					else{
-		//						selectedStatus[position] = true;
-		//						View currentEntry = lv.getChildAt(viewPosition);
-		//						currentEntry.setBackgroundResource(R.color.selected);
-		//					}
-		//					Song newSong = songsList.get(position);
-		//					ArrayList<Song>localNewSongs = new ArrayList<Song> (LibraryInfo.newSongs);
-		//					if(localNewSongs.contains(newSong)){
-		//						for(Song song : localNewSongs){
-		//							if(song.title().equals(newSong.title() ) && song.artist().equals(newSong.artist() ) && song.album().equals(newSong.album() )){
-		//								LibraryInfo.newSongs.remove(LibraryInfo.newSongs.indexOf(song));
-		//							}
-		//						}
-		//					}
-		//					else{
-		//						LibraryInfo.newSongs.add(newSong);   
-		//					}
-		//
-		//				}
-		//			});
-
-}
+			}
+		});
+	}
 }
