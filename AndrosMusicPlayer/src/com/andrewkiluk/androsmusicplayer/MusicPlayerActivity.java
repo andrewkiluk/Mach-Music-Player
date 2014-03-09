@@ -435,7 +435,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			}			
 			currentSongIndex = mService.getCurrentSongIndex();
 
-			updateSongUI(currentSongIndex, mp.isPlaying());
+//			updateSongUI(currentSongIndex, mp.isPlaying());
 
 			mService.cancelAlarm();
 			if (mp.isPlaying()){

@@ -433,6 +433,7 @@ class LibraryInfo
 		artistsList = new ArrayList<Artist>();
 		albumsList = new ArrayList<Album>();
 		isInitialized = true;
+		currentSongIndex = 0;
 		currentPlaylist = new Playlist(new ArrayList<Song>(), "__CURRENT_PLAYLIST__");
 		playlists = new ArrayList<Playlist>();
 	}
@@ -442,6 +443,7 @@ class LibraryInfo
 	public static boolean isInitialized = false;
 	public static ArrayList<Song> songsList;
 	public static Playlist currentPlaylist;
+	public static int currentSongIndex;
 	public static ArrayList<Playlist> playlists;
 	public static ArrayList<Song> newSongs;
 	public static ArrayList<Artist> artistsList;
