@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <PreferenceCategory android:title="Notification Settings" >
+
+        <!-- <EditTextPreference -->
+        <!-- android:defaultValue="/media" -->
+        <!-- android:key="library_location" -->
+        <!-- android:summary="Directory to search for .mp3 files.\nRestart after changing." -->
+        <!-- android:title="Library Directory" /> -->
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="big_notifications"
+            android:summary="Display album art in the Big Picture format in notifications."
+            android:title="Big Picture Notifications" />
+
+        <EditTextPreference
+            android:defaultValue="5"
+            android:inputType="number"
+            android:key="serviceSleepDelay"
+            android:summary="Time in minutes that notifications will stay if the player is paused and the app is inactive.\nRestart after changing."
+            android:title="Notification Delay" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Library Settings" >
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="filteringOn"
+            android:summary="Attempt to filter out system sounds and ringtones."
+            android:title="File Filtering" />
+
+        <Preference
+            android:summary="The app will be unresponsive for several seconds while your device is scanned."
+            android:title="Reload Music Library" >
+
+            <intent
+                android:action=".LibraryReloadActivity"
+                android:targetClass="com.andrewkiluk.androsmusicplayer.LibraryReloadActivity"
+                android:targetPackage="com.andrewkiluk.androsmusicplayer" />
+        </Preference>
+    </PreferenceCategory>
+
+</PreferenceScreen>

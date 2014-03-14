@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Mach Music Player</string>
+    <string name="action_settings">Settings</string>
+    <string name="artist_name">""</string>
+    <string name="song_name">"Not Playing"</string>
+    <string name="album_name">""</string>
+    <string name="music_directory">/media/audio/mp3</string>
+    <string name="add_songs_button_text">Add Songs</string>
+    <string name="add_selected_to_playlist_button_text">Add Selected</string>
+    <string name="clear_playlist_button_text">Clear Playlist</string>
+    <string name="playlists_button_text">Playlists</string>
+    <string name="clear_selection_button_text">Clear Selection</string>
+
+
+    
+    <color name="bg">#666e80</color>
+    <color name="footercolor">#2b2b3b</color>
+    <color name="tabcolor">#21212e</color>
+    <color name="selected">#3f495f</color>
+    <color name="selected_orange">#996632</color>
+    <color name="transparent">#80000000</color>
+    
+    
+    
+</resources>
