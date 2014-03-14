@@ -5,8 +5,16 @@ The music apps I've found for Android have been laggy and / or constantly naggin
 
 This project started from an example at http://www.androidhive.info/.
 
+Version 1.1:
+------------
+
+I get the UI a much-needed overhaul, and fixed a few weird behaviors that would occur when the player was started with an empty playlist. The current song and position are now stored upon exit, so you don't lose your place.
+
+Also, the player should now support most screen sizes. I think it's ready for the Play Store after some more testing. Hm, maybe Version 1.0 was a bit premature... but it's in actual working shape right now as far as I can tell.
+
+
 Version 1.0:
---------------
+------------
 
 I've finished all of the main goals, plus all of my reach goals, plus some other things I thought of. This thing is now looking really good:
 
@@ -16,7 +24,7 @@ I've finished all of the main goals, plus all of my reach goals, plus some other
 
  - It supports playlists.
 
- There are some cosmetic things I might do from here -- I'll get some opinions on the interface design and what kinds of thigns I should add to the settings. But that's all pretty minor.
+ There are some cosmetic things I might do from here -- I'll get some opinions on the interface design and what kinds of things I should add to the settings. But that's all pretty minor.
 
 Version 0.9.4:
 --------------
