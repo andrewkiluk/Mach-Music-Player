@@ -1,7 +1,7 @@
-Simple-Music-Player
+Andros Music Player
 ===================
 
-The music apps I've found for Android have been bloated and / or constantly nagging you to like them on Facebook, so my first attempt at an app is making a music player that I like. 
+The music apps I've found for Android have been laggy and / or constantly nagging you to like them on Facebook, so my first attempt at an app is making a music player that does its job efficiently and doesn't get in your way.
 
 This project started from an example at http://www.androidhive.info/.
 
