@@ -77,7 +77,7 @@ public class PlaylistManagerFragment extends ListFragment {
 					int position, long id) {
 				
 				
-				LibraryInfo.currentPlaylist = new Playlist(LibraryInfo.playlists.get(position).songs, "__CURRENT_PLAYLIST__"); 
+				CurrentData.currentPlaylist = new Playlist(LibraryInfo.playlists.get(position).songs, "__CURRENT_PLAYLIST__"); 
 				
 				onPlaylistPickedListener.playlistPicked(position);
 

@@ -51,7 +51,7 @@ public class PlaylistFragment extends ListFragment {
 		ArrayList<String> songnamesList = new ArrayList<String>();
 		if (LibraryInfo.isInitialized){
 			int i=0;
-			for (Song song : LibraryInfo.currentPlaylist.songs) {
+			for (Song song : CurrentData.currentPlaylist.songs) {
 				// creating new HashMap
 				songnamesList.add(Integer.toString(++i) + ") " + song.title());
 			}
@@ -101,11 +101,11 @@ public class PlaylistFragment extends ListFragment {
 						dialog.cancel();
 
 						// Remove song
-						Song oldSong = LibraryInfo.currentPlaylist.songs.get(currentSongPosition);
-						Playlist localPlaylist = new Playlist (LibraryInfo.currentPlaylist);
+						Song oldSong = CurrentData.currentPlaylist.songs.get(currentSongPosition);
+						Playlist localPlaylist = new Playlist (CurrentData.currentPlaylist);
 						for(Song song : localPlaylist.songs){
 							if(song.title().equals(oldSong.title() ) && song.artist().equals(oldSong.artist() ) && song.album().equals(oldSong.album() )){
-								LibraryInfo.currentPlaylist.songs.remove(localPlaylist.songs.indexOf(song));
+								CurrentData.currentPlaylist.songs.remove(localPlaylist.songs.indexOf(song));
 							}
 						}
 						

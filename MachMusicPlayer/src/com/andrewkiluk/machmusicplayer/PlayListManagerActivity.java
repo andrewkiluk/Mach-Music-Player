@@ -86,20 +86,19 @@ public class PlayListManagerActivity extends FragmentActivity implements Playlis
 						}
 						if(unique){
 
-
-							// SOMEHOW, it's reading the current playlist as empty. Wat.
-
-
-							Playlist newPlaylist = new Playlist(LibraryInfo.currentPlaylist.songs, newName);
+							Playlist newPlaylist = new Playlist(CurrentData.currentPlaylist.songs, newName);
 
 							LibraryInfo.playlists.add(newPlaylist);
 
-
-
-
-
-
+							
+							
+							
 							// Probably sort playlists by name!!
+							
+							
+							
+							
+							
 						}
 
 

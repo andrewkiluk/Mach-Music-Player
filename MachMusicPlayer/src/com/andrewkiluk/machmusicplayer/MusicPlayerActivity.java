@@ -20,9 +20,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -75,21 +77,70 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 
 
+		// Do UI setup based on screen size
+
 		DisplayMetrics displaymetrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
 		int ht = displaymetrics.heightPixels;
 		int wt = displaymetrics.widthPixels;
-		if(ht - dpToPx(350) < wt - dpToPx(100)){
-			albumArtSize = ht - dpToPx(350);
+
+
+		// Adjust width and padding for the control buttons based on screen size.
+
+		int footerHeight = 100;
+		if(pxToDp(wt) * 100 / 384 < 100){
+			footerHeight = pxToDp(wt) * 100 / 384;
+		}
+		int spaceUnit =  dpToPx((int)(pxToDp(wt) * 20.0 / 384));
+		if (spaceUnit > 30){
+			spaceUnit = 30;
+		}
+		int paddingUnit =  dpToPx((int)(pxToDp(wt) * 8.0 / 384));
+		if(paddingUnit > 10){
+			paddingUnit = 10;
+		}
+
+		RelativeLayout footerView = (RelativeLayout) findViewById(R.id.player_footer);
+		RelativeLayout.LayoutParams footerParams = (RelativeLayout.LayoutParams) footerView .getLayoutParams();
+		footerParams.height = dpToPx(footerHeight);
+		footerView .setLayoutParams(footerParams);
+
+		btnPrevious.setPadding( (int) (1.5 * paddingUnit), paddingUnit, (int) (1.5 * paddingUnit), paddingUnit);
+		btnPlay.setPadding( (int) (1.5 * paddingUnit), (int) (2.2 * paddingUnit), (int) (1.5 * paddingUnit), (int) (2.2 * paddingUnit));
+		btnNext.setPadding( (int) (1.5 * paddingUnit), paddingUnit, (int) (1.5 * paddingUnit), paddingUnit);
+
+		ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) btnNext.getLayoutParams();
+		p.setMargins(spaceUnit, 0, 0, 0);
+
+		p = (ViewGroup.MarginLayoutParams) btnPrevious.getLayoutParams();
+		p.setMargins(0, 0, spaceUnit, 0);
+
+		p = (ViewGroup.MarginLayoutParams) btnRepeat.getLayoutParams();
+		p.setMargins((int) (1.5 * spaceUnit), 0, 0, 0);
+
+		p = (ViewGroup.MarginLayoutParams) btnShuffle.getLayoutParams();
+		p.setMargins(0, 0, (int) (1.5 * spaceUnit), 0);
+
+
+		// Compute the album art size based on screen dimensions
+		int statusBarHeight = 0;
+		int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+		if (resourceId > 0) {
+			statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+		}
+
+		if(ht - dpToPx(155 + statusBarHeight) > wt){
+			albumArtSize = ht - dpToPx(155 + statusBarHeight);
 		}
 		else{
-			albumArtSize = wt - dpToPx(100); 
+			albumArtSize = wt; 
 		}
+
 		LayoutParams params = albumFrame.getLayoutParams();
 		params.height = albumArtSize + dpToPx(30);
 		params.width = albumArtSize;
 
-		acr.setDataSource(LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songPath"));
+		acr.setDataSource(CurrentData.currentSong.songData.get("songPath"));
 		art = acr.getEmbeddedPicture();
 		if(art != null){
 			Bitmap songImage = BitmapFactory
@@ -101,7 +152,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			albumFrame.setImageBitmap(songImage);
 		}
 		else{	
-			albumFrame.setImageResource(R.drawable.album);
+			albumFrame.setImageResource(android.R.color.transparent);
 		}
 
 
@@ -185,32 +236,76 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		// Listeners
 		songProgressBar.setOnSeekBarChangeListener(this); // Important
 
-		// Do UI setup for the first item of the playlist
+		// Do UI setup based on screen size
 
 		DisplayMetrics displaymetrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
 		int ht = displaymetrics.heightPixels;
 		int wt = displaymetrics.widthPixels;
 
-		if(ht - dpToPx(350) < wt - dpToPx(100)){
-			albumArtSize = ht - dpToPx(350);
+
+		// Adjust width and padding for the control buttons based on screen size.
+
+		int footerHeight = 100;
+		if(pxToDp(wt) * 100 / 384 < 100){
+			footerHeight = pxToDp(wt) * 100 / 384;
+		}
+		int spaceUnit =  dpToPx((int)(pxToDp(wt) * 20.0 / 384));
+		if (spaceUnit > 30){
+			spaceUnit = 30;
+		}
+		int paddingUnit =  dpToPx((int)(pxToDp(wt) * 8.0 / 384));
+		if(paddingUnit > 10){
+			paddingUnit = 10;
+		}
+
+		RelativeLayout footerView = (RelativeLayout) findViewById(R.id.player_footer);
+		RelativeLayout.LayoutParams footerParams = (RelativeLayout.LayoutParams) footerView .getLayoutParams();
+		footerParams.height = dpToPx(footerHeight);
+		footerView .setLayoutParams(footerParams);
+
+		btnPrevious.setPadding( (int) (1.5 * paddingUnit), paddingUnit, (int) (1.5 * paddingUnit), paddingUnit);
+		btnPlay.setPadding( (int) (1.5 * paddingUnit), (int) (2.2 * paddingUnit), (int) (1.5 * paddingUnit), (int) (2.2 * paddingUnit));
+		btnNext.setPadding( (int) (1.5 * paddingUnit), paddingUnit, (int) (1.5 * paddingUnit), paddingUnit);
+
+		ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) btnNext.getLayoutParams();
+		p.setMargins(spaceUnit, 0, 0, 0);
+
+		p = (ViewGroup.MarginLayoutParams) btnPrevious.getLayoutParams();
+		p.setMargins(0, 0, spaceUnit, 0);
+
+		p = (ViewGroup.MarginLayoutParams) btnRepeat.getLayoutParams();
+		p.setMargins((int) (1.5 * spaceUnit), 0, 0, 0);
+
+		p = (ViewGroup.MarginLayoutParams) btnShuffle.getLayoutParams();
+		p.setMargins(0, 0, (int) (1.5 * spaceUnit), 0);
+
+
+		// Compute the album art size based on screen dimensions
+		int statusBarHeight = 0;
+		int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+		if (resourceId > 0) {
+			statusBarHeight = getResources().getDimensionPixelSize(resourceId);
+		}
+
+		if(ht - dpToPx(155 + statusBarHeight) > wt){
+			albumArtSize = ht - dpToPx(155 + statusBarHeight);
 		}
 		else{
-			albumArtSize = wt - dpToPx(100); 
+			albumArtSize = wt; 
 		}
 
 
-		// Used to read ID3 tags.
+
+		// Now we set the album art for the first song
 		MediaMetadataRetriever acr = new MediaMetadataRetriever();
-
 		final ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
-
 		try {
 
 			// Displaying Song title
-			String songTitle = LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songTitle");
-			String songArtist = LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songArtist");
-			String songAlbum = LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songAlbum");
+			String songTitle = CurrentData.currentSong.songData.get("songTitle");
+			String songArtist = CurrentData.currentSong.songData.get("songArtist");
+			String songAlbum = CurrentData.currentSong.songData.get("songAlbum");
 			songTitleLabel.setText(songTitle);
 			songArtistLabel.setText(songArtist);
 			songAlbumLabel.setText(songAlbum);
@@ -220,7 +315,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			params.height = albumArtSize + dpToPx(30);
 			params.width = albumArtSize;
 
-			acr.setDataSource(LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songPath"));
+			acr.setDataSource(CurrentData.currentSong.songData.get("songPath"));
 			art = acr.getEmbeddedPicture();
 			Bitmap songImage = BitmapFactory
 					.decodeByteArray(art, 0, art.length);
@@ -230,7 +325,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			albumFrame.setImageBitmap(songImage);
 		} catch (Exception e) {
-			albumFrame.setImageResource(R.drawable.album);
+			albumFrame.setImageResource(android.R.color.transparent);
 
 			LayoutParams params = albumFrame.getLayoutParams();
 			// Changes the height and width to the specified *pixels*
@@ -257,17 +352,15 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				// check for already playing
 				if(mp.isPlaying()){
 					if(!mp.isNull()){
-						mp.pause();
-						// Changing button image to play button
-						btnPlay.setImageResource(R.drawable.ic_action_play);
-						mService.createNotification(false);
-
+						if(mBound){
+							mService.pausePlayer();
+							mService.createNotification(false);
+						}
 					}
 				}else{
 					// Resume song
 					if(!mp.isNull()){
 						mp.start();
-						// Changing button image to pause button
 						btnPlay.setImageResource(R.drawable.ic_action_pause);
 						mService.cancelAlarm();
 						mService.createNotification(true);
@@ -280,7 +373,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 		/**
 		 * Next button click event
-		 * Plays next song by taking currentSongIndex + 1
 		 * */
 		btnNext.setOnClickListener(new View.OnClickListener() {
 
@@ -310,31 +402,14 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 		/**
 		 * Back button click event
-		 * Plays previous song by currentSongIndex - 1
 		 * */
 		btnPrevious.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
-				if (mp.getCurrentPosition() > 3000){
-					mService.playSong();
-					updateSongUI(true);
-				}else{
-					if(LibraryInfo.currentSongIndex > 0){
-						LibraryInfo.currentSongIndex = LibraryInfo.currentSongIndex - 1;
-						mService.playSong();
-						updateSongUI(true);
-
-					}else{
-						// play last song
-						LibraryInfo.currentSongIndex = LibraryInfo.currentPlaylist.songs.size() - 1;
-						mService.playSong();
-						updateSongUI(true);
-
-					}
+				if(mBound){
+					mService.playPrevious();
 				}
-
-
 			}
 		});
 
@@ -460,21 +535,20 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			try {
 				if(firstBind){
-					int songIndex = 0;
 					mp.reset();
-					mp.setDataSource(LibraryInfo.currentPlaylist.songs.get(songIndex).songData.get("songPath"));
+					mp.setDataSource(CurrentData.currentSong.songData.get("songPath"));
 					mp.prepare();
-
-					mService.updateCurrentSong();
+					int oldTimer = mService.getOldTimer();
+					mp.seekTo(oldTimer);
 
 					mService.createNotification(false);
 
 					firstBind = false;
 				}
 			}catch (Exception e) {
-
+				Log.d("Test","Initialization failed!");
 			}		
-			
+
 			updateSongUI(mp.isPlaying());
 
 			mService.cancelAlarm();
@@ -488,7 +562,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			//			PlayerStatus ps = mService.getPlayerStatus();
 			PlayerStatus.notification_set = true;
 			PlayerStatus.alarm_set = false;
-			
+
 		}
 
 		@Override
@@ -532,10 +606,9 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if(resultCode == 100){
-			LibraryInfo.currentSongIndex = data.getExtras().getInt("songIndex");
 			// update UI for new song
 			updateSongUI(true);
-			// Update data in MusicPlayerService and play selected song.
+			// Play selected song.
 			mService.playSong();
 
 		}
@@ -559,15 +632,15 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			final ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
 
 			// Displaying Song title
-			String songTitle = LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songTitle");
-			String songArtist = LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songArtist");
-			String songAlbum = LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songAlbum");
+			String songTitle = CurrentData.currentSong.songData.get("songTitle");
+			String songArtist = CurrentData.currentSong.songData.get("songArtist");
+			String songAlbum = CurrentData.currentSong.songData.get("songAlbum");
 			songTitleLabel.setText(songTitle);
 			songArtistLabel.setText(songArtist);
 			songAlbumLabel.setText(songAlbum);
 
 			try {
-				acr.setDataSource(LibraryInfo.currentPlaylist.songs.get(LibraryInfo.currentSongIndex).songData.get("songPath"));
+				acr.setDataSource(CurrentData.currentSong.songData.get("songPath"));
 				art = acr.getEmbeddedPicture();
 				Bitmap songImage = BitmapFactory
 						.decodeByteArray(art, 0, art.length);
@@ -575,7 +648,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 
 			} catch (Exception e) {
-				albumFrame.setImageResource(R.drawable.album);
+				albumFrame.setImageResource(android.R.color.transparent);
 			}
 
 			// Changing Button Image to correct image
@@ -615,7 +688,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	private Runnable mUpdateTimeTask = new Runnable() {
 		public void run() {
 			try{
-				
+
 				long totalDuration = 0;
 				long currentDuration = 0;
 
@@ -743,13 +816,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			}
 		}
 
-		public void play(String songPath)
-		{
-			if (mBound) {
-				mService.play(songPath);	            
-			}
-		}
-
 		public boolean isPlaying()
 		{
 			if (mBound) {
@@ -771,7 +837,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				mService.release();	            
 			}
 		}
-		
+
 		public boolean isReady()
 		{
 			if (mBound) {
