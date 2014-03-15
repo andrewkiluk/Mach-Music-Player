@@ -67,7 +67,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 				CurrentData.clearPlaylist();
 				final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
 				PlaylistFragment refresh = new PlaylistFragment();
-				ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.androsmusicplayer.PlaylistFragment"); 
+				ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
 				ft.commit(); 
 			}
 		});
@@ -154,7 +154,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 			// Update UI
 			final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
 			PlaylistFragment refresh = new PlaylistFragment();
-			ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.androsmusicplayer.PlaylistFragment"); 
+			ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
 			ft.commit(); 
 			
 			// Store the current playlist in system settings.

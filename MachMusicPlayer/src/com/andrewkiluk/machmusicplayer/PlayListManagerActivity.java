@@ -103,7 +103,7 @@ public class PlayListManagerActivity extends FragmentActivity implements Playlis
 
 
 						PlaylistManagerFragment refresh = new PlaylistManagerFragment();
-						ft.replace(R.id.playlists_container, refresh, "com.andrewkiluk.androsmusicplayer.PlaylistManagerFragment"); 
+						ft.replace(R.id.playlists_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistManagerFragment"); 
 						ft.commit(); 
 						if(!unique){
 							nameError();
@@ -190,7 +190,7 @@ public class PlayListManagerActivity extends FragmentActivity implements Playlis
 			// Update UI
 			final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
 			PlaylistFragment refresh = new PlaylistFragment();
-			ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.androsmusicplayer.PlaylistFragment"); 
+			ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
 			ft.commit(); 
 		}
 
