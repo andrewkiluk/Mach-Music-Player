@@ -331,10 +331,12 @@ class Song implements Comparable<Song>
 
 
 
-	Song(String title, String artist, String album){
+	Song(String title, String album, String artist, String path){
+		songData = new HashMap<String, String>();
 		songData.put("songArtist", artist);
 		songData.put("songAlbum", album);
 		songData.put("songTitle", title);
+		songData.put("songPath", path);
 	}
 
 	Song(HashMap<String, String> input){

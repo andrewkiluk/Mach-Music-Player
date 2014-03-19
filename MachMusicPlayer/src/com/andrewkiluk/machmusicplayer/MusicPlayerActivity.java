@@ -6,16 +6,20 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaMetadataRetriever;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
-import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -31,6 +35,7 @@ import android.widget.Toast;
 
 import com.andrewkiluk.machmusicplayer.MusicPlayerService.BoundServiceListener;
 import com.andrewkiluk.machmusicplayer.MusicPlayerService.LocalBinder;
+import com.google.gson.Gson;
 
 
 public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarChangeListener {
@@ -47,6 +52,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	private TextView songAlbumLabel;
 	private TextView songCurrentDurationLabel;
 	private TextView songTotalDurationLabel;
+	private TextView repeat_once_text;
 
 	private int albumArtSize;
 
@@ -60,104 +66,22 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 	private MusicPlayerService mService;
 
+	SharedPreferences sharedPrefs;
+
 	boolean mBound = false; // Tells whether activity is bound to background service.
 	boolean firstBind = true; // Used to detect whether to set some things up upon binding.
 
+	long totalDuration = 0;
+	long currentDuration = 0;
+
 	byte[] art;
+	private Bitmap songImage;
 
 
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-
-		// Redraw the album art for the new screen layout
-		MediaMetadataRetriever acr = new MediaMetadataRetriever();
-
-		final ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
-
-
-
-		// Do UI setup based on screen size
-
-		DisplayMetrics displaymetrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-		int ht = displaymetrics.heightPixels;
-		int wt = displaymetrics.widthPixels;
-
-
-		// Adjust width and padding for the control buttons based on screen size.
-
-		int footerHeight = 100;
-		if(pxToDp(wt) * 100 / 384 < 100){
-			footerHeight = pxToDp(wt) * 100 / 384;
-		}
-		int spaceUnit =  dpToPx((int)(pxToDp(wt) * 20.0 / 384));
-		if (spaceUnit > 30){
-			spaceUnit = 30;
-		}
-		int paddingUnit =  dpToPx((int)(pxToDp(wt) * 8.0 / 384));
-		if(paddingUnit > 10){
-			paddingUnit = 10;
-		}
-
-		RelativeLayout footerView = (RelativeLayout) findViewById(R.id.player_footer);
-		RelativeLayout.LayoutParams footerParams = (RelativeLayout.LayoutParams) footerView .getLayoutParams();
-		footerParams.height = dpToPx(footerHeight);
-		footerView .setLayoutParams(footerParams);
-
-		btnPrevious.setPadding( (int) (1.5 * paddingUnit), paddingUnit, (int) (1.5 * paddingUnit), paddingUnit);
-		btnPlay.setPadding( (int) (1.5 * paddingUnit), (int) (2.2 * paddingUnit), (int) (1.5 * paddingUnit), (int) (2.2 * paddingUnit));
-		btnNext.setPadding( (int) (1.5 * paddingUnit), paddingUnit, (int) (1.5 * paddingUnit), paddingUnit);
-
-		ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) btnNext.getLayoutParams();
-		p.setMargins(spaceUnit, 0, 0, 0);
-
-		p = (ViewGroup.MarginLayoutParams) btnPrevious.getLayoutParams();
-		p.setMargins(0, 0, spaceUnit, 0);
-
-		p = (ViewGroup.MarginLayoutParams) btnRepeat.getLayoutParams();
-		p.setMargins((int) (1.5 * spaceUnit), 0, 0, 0);
-
-		p = (ViewGroup.MarginLayoutParams) btnShuffle.getLayoutParams();
-		p.setMargins(0, 0, (int) (1.5 * spaceUnit), 0);
-
-
-		// Compute the album art size based on screen dimensions
-		int statusBarHeight = 0;
-		int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-		if (resourceId > 0) {
-			statusBarHeight = getResources().getDimensionPixelSize(resourceId);
-		}
-
-		if(ht - dpToPx(155 + statusBarHeight) > wt){
-			albumArtSize = ht - dpToPx(155 + statusBarHeight);
-		}
-		else{
-			albumArtSize = wt; 
-		}
-
-		LayoutParams params = albumFrame.getLayoutParams();
-		params.height = albumArtSize + dpToPx(30);
-		params.width = albumArtSize;
-
-		acr.setDataSource(CurrentData.currentSong.songData.get("songPath"));
-		art = acr.getEmbeddedPicture();
-		if(art != null){
-			Bitmap songImage = BitmapFactory
-					.decodeByteArray(art, 0, art.length);
-
-			//			songImage = Bitmap.createScaledBitmap(songImage, albumArtSize, albumArtSize, false);
-
-
-			albumFrame.setImageBitmap(songImage);
-		}
-		else{	
-			albumFrame.setImageResource(android.R.color.transparent);
-		}
-
-
-
-
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 	}
 
 	@Override
@@ -227,11 +151,31 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		songAlbumLabel = (TextView) findViewById(R.id.songAlbum);
 		songCurrentDurationLabel = (TextView) findViewById(R.id.songCurrentDurationLabel);
 		songTotalDurationLabel = (TextView) findViewById(R.id.songTotalDurationLabel);
+		repeat_once_text = (TextView)findViewById(R.id.repeat_once_text);
 
 		// mp3Player
 		mp = new mp3Player();
-
+		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		utils = new Utilities();
+
+		// Load saved preferences
+		PlayerOptions.isShuffle = sharedPrefs.getBoolean("isShuffle", false);
+		PlayerOptions.repeatMode = sharedPrefs.getString("repeatMode", "OFF");
+
+		if(PlayerOptions.repeatMode.equals("OFF")){
+			btnRepeat.setBackgroundResource(R.drawable.control_button);
+			repeat_once_text.setTextColor(Color.argb(0,255,255,255));
+		}else if(PlayerOptions.repeatMode.equals("SONG")){
+			repeat_once_text.setTextColor(Color.argb(180,255,255,255));
+			btnRepeat.setBackgroundResource(R.drawable.control_button_selected);
+		}else{
+			repeat_once_text.setTextColor(Color.argb(0,255,255,255));
+			btnRepeat.setBackgroundResource(R.drawable.control_button_selected);
+		}
+
+		if(PlayerOptions.isShuffle){
+			btnShuffle.setBackgroundResource(R.drawable.control_button_selected);
+		}
 
 		// Listeners
 		songProgressBar.setOnSeekBarChangeListener(this); // Important
@@ -243,12 +187,11 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		int ht = displaymetrics.heightPixels;
 		int wt = displaymetrics.widthPixels;
 
-
 		// Adjust width and padding for the control buttons based on screen size.
 
 		int footerHeight = 100;
-		if(pxToDp(wt) * 100 / 384 < 100){
-			footerHeight = pxToDp(wt) * 100 / 384;
+		if(pxToDp(wt) * 75 / 384 < 100){
+			footerHeight = pxToDp(wt) * 75 / 384;
 		}
 		int spaceUnit =  dpToPx((int)(pxToDp(wt) * 20.0 / 384));
 		if (spaceUnit > 30){
@@ -281,15 +224,24 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		p.setMargins(0, 0, (int) (1.5 * spaceUnit), 0);
 
 
-		// Compute the album art size based on screen dimensions
+		// Calculate StatusBar height
 		int statusBarHeight = 0;
 		int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
 		if (resourceId > 0) {
 			statusBarHeight = getResources().getDimensionPixelSize(resourceId);
 		}
 
-		if(ht - dpToPx(155 + statusBarHeight) > wt){
-			albumArtSize = ht - dpToPx(155 + statusBarHeight);
+		// Calculate ActionBar height
+		TypedValue tv = new TypedValue();
+		int actionBarHeight = 0;
+		if (getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true))
+		{
+			actionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data,getResources().getDisplayMetrics());
+		}
+
+		// Compute the album art size based on screen dimensions
+		if(ht - statusBarHeight - actionBarHeight - dpToPx(155) > wt){
+			albumArtSize = ht - statusBarHeight - actionBarHeight - dpToPx(155) ;
 		}
 		else{
 			albumArtSize = wt; 
@@ -312,12 +264,12 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			LayoutParams params = albumFrame.getLayoutParams();
 			// Changes the height and width to the specified *pixels*
-			params.height = albumArtSize + dpToPx(30);
+			params.height = albumArtSize;
 			params.width = albumArtSize;
 
 			acr.setDataSource(CurrentData.currentSong.songData.get("songPath"));
 			art = acr.getEmbeddedPicture();
-			Bitmap songImage = BitmapFactory
+			songImage = BitmapFactory
 					.decodeByteArray(art, 0, art.length);
 
 			songImage = Bitmap.createScaledBitmap(songImage, albumArtSize, albumArtSize, false);
@@ -329,7 +281,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			LayoutParams params = albumFrame.getLayoutParams();
 			// Changes the height and width to the specified *pixels*
-			params.height = albumArtSize + dpToPx(30);
+			params.height = albumArtSize;
 			params.width = albumArtSize;
 		}
 		// Updating progress bar
@@ -349,21 +301,32 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			@Override
 			public void onClick(View arg0) {
-				// check for already playing
-				if(mp.isPlaying()){
-					if(!mp.isNull()){
-						if(mBound){
-							mService.pausePlayer();
-							mService.createNotification(false);
-						}
+				if(PlayerStatus.endReached == true){
+					CurrentData.currentSongIndex = 0;
+					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
+					PlayerStatus.endReached = false;
+					if(mBound){
+						mService.playSong();
 					}
-				}else{
-					// Resume song
-					if(!mp.isNull()){
-						mp.start();
-						btnPlay.setImageResource(R.drawable.ic_action_pause);
-						mService.cancelAlarm();
-						mService.createNotification(true);
+					updateSongUI(mp.isPlaying());
+				}
+				if(CurrentData.currentSong != null){
+					// check for already playing
+					if(mp.isPlaying()){
+						if(!mp.isNull()){
+							if(mBound){
+								mService.pausePlayer();
+								//mService.updateNotification(false);
+							}
+						}
+					}else{
+						// Resume song
+						if(!mp.isNull()){
+							mp.start();
+							btnPlay.setImageResource(R.drawable.ic_action_pause);
+							mService.cancelAlarm();
+							mService.updateNotification(true);
+						}
 					}
 				}
 
@@ -421,19 +384,26 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			@Override
 			public void onClick(View arg0) {
-				if(mService.getPlayerOptions().isRepeat){
-					mService.getPlayerOptions().isRepeat = false;
-					makeToast("Repeat is OFF");
-					btnRepeat.setBackgroundResource(R.drawable.control_button);
-				}else{
-					// make repeat to true
-					mService.getPlayerOptions().isRepeat = true;
-					makeToast("Repeat is ON");
-					// make shuffle to false
-					mService.getPlayerOptions().isShuffle = false;
+
+				if(PlayerOptions.repeatMode.equals("OFF")){
+					PlayerOptions.repeatMode = "PLAYLIST";
+					makeToast("Repeat Current Playlist");
 					btnRepeat.setBackgroundResource(R.drawable.control_button_selected);
-					btnShuffle.setBackgroundResource(R.drawable.control_button);
+				}else if(PlayerOptions.repeatMode.equals("PLAYLIST")){
+					PlayerOptions.repeatMode = "SONG";
+					makeToast("Repeat Current Song");
+					repeat_once_text.setTextColor(Color.argb(180,255,255,255));
+				}else{
+					PlayerOptions.repeatMode = "OFF";
+					makeToast("Repeat is Off");
+					repeat_once_text.setTextColor(Color.argb(0,255,255,255));
+					btnRepeat.setBackgroundResource(R.drawable.control_button);
 				}
+
+				SharedPreferences.Editor editor = sharedPrefs.edit();
+				editor.putString("repeatMode", PlayerOptions.repeatMode);
+				editor.commit();
+
 			}
 		});
 
@@ -445,20 +415,19 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			@Override
 			public void onClick(View arg0) {
-				if(mService.getPlayerOptions().isShuffle){
-					mService.getPlayerOptions().isShuffle = false;
+				if(PlayerOptions.isShuffle){
+					PlayerOptions.isShuffle = false;
 					makeToast("Shuffle is OFF");
 					btnShuffle.setBackgroundResource(R.drawable.control_button);
 				}else{
-					// make repeat to true
-					mService.getPlayerOptions().isShuffle = true;
+					// Turn on shuffle
+					PlayerOptions.isShuffle = true;
 					makeToast("Shuffle is ON");
-
-					// make shuffle to false
-					mService.getPlayerOptions().isRepeat = false;
 					btnShuffle.setBackgroundResource(R.drawable.control_button_selected);
-					btnRepeat.setBackgroundResource(R.drawable.control_button);
 				}
+				SharedPreferences.Editor editor = sharedPrefs.edit();
+				editor.putBoolean("isShuffle", PlayerOptions.isShuffle);
+				editor.commit();
 			}
 		});
 
@@ -487,13 +456,27 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				mService.setAlarm();
 			}
 		}
+	}
+
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		AppStatus.isVisible = false;
+
 		// Unbind from the service
 		if (mBound) {
 			unbindService(mConnection);
 			mBound = false;
 		}
+	}
 
+	@Override
+	protected void onResume() {
+		super.onResume();
+		AppStatus.isVisible = true;
 
+		updateSongUI(mp.isPlaying());
 	}
 
 	/**
@@ -533,21 +516,18 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			// Okay, now we can do the setup stuff that requires the MediaPlayer class to exist.
 
-			try {
-				if(firstBind){
-					mp.reset();
+			if(firstBind){
+				mp.reset();
+				if(CurrentData.currentSong != null){
 					mp.setDataSource(CurrentData.currentSong.songData.get("songPath"));
 					mp.prepare();
 					int oldTimer = mService.getOldTimer();
 					mp.seekTo(oldTimer);
 
-					mService.createNotification(false);
-
-					firstBind = false;
+					mService.createNotification(false);	
 				}
-			}catch (Exception e) {
-				Log.d("Test","Initialization failed!");
-			}		
+				firstBind = false;
+			}
 
 			updateSongUI(mp.isPlaying());
 
@@ -559,7 +539,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				mService.createNotification(false);
 			}
 
-			//			PlayerStatus ps = mService.getPlayerStatus();
 			PlayerStatus.notification_set = true;
 			PlayerStatus.alarm_set = false;
 
@@ -624,56 +603,94 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	 * */
 	public void updateSongUI(boolean isPlaying){
 		// Play song
-		try {
 
-			// Used to read ID3 tags.
-			MediaMetadataRetriever acr = new MediaMetadataRetriever();
-
-			final ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
-
+		String songTitle;
+		String songArtist;
+		String songAlbum;
+		if(CurrentData.currentSong != null){
 			// Displaying Song title
-			String songTitle = CurrentData.currentSong.songData.get("songTitle");
-			String songArtist = CurrentData.currentSong.songData.get("songArtist");
-			String songAlbum = CurrentData.currentSong.songData.get("songAlbum");
-			songTitleLabel.setText(songTitle);
-			songArtistLabel.setText(songArtist);
-			songAlbumLabel.setText(songAlbum);
+			songTitle = CurrentData.currentSong.songData.get("songTitle");
+			songArtist = CurrentData.currentSong.songData.get("songArtist");
+			songAlbum = CurrentData.currentSong.songData.get("songAlbum");
+		}
+		else{
+			songTitle = "";
+			songArtist = "";
+			songAlbum = "";
+		}
+		songTitleLabel.setText(songTitle);
+		songArtistLabel.setText(songArtist);
+		songAlbumLabel.setText(songAlbum);
 
-			try {
-				acr.setDataSource(CurrentData.currentSong.songData.get("songPath"));
-				art = acr.getEmbeddedPicture();
-				Bitmap songImage = BitmapFactory
-						.decodeByteArray(art, 0, art.length);
-				albumFrame.setImageBitmap(songImage);
+		startUpdateAlbumArt();
 
-
-			} catch (Exception e) {
-				albumFrame.setImageResource(android.R.color.transparent);
-			}
-
-			// Changing Button Image to correct image
-			if (isPlaying){
-				btnPlay.setImageResource(R.drawable.ic_action_pause);
-			}
-			else{
-				btnPlay.setImageResource(R.drawable.ic_action_play);
-			}
+		// Changing Button Image to correct image
+		if (isPlaying){
+			btnPlay.setImageResource(R.drawable.ic_action_pause);
+		}
+		else{
+			btnPlay.setImageResource(R.drawable.ic_action_play);
+		}
 
 
-			// set Progress bar values
-			songProgressBar.setProgress(0);
-			songProgressBar.setMax(1000);
+		// set Progress bar values
+		songProgressBar.setProgress(0);
+		songProgressBar.setMax(1000);
 
 
 
 
-			// Updating progress bar
-			updateProgressBar();
-		} catch (Exception e) {
-
-		} 
+		// Updating progress bar
+		updateProgressBar();
 
 	}
+
+	//	updateAlbumArt
+
+	// Need handler for callbacks to the UI thread
+	final Handler albumArtHandler = new Handler();
+
+	// Create runnable for posting
+	final Runnable updateAlbumArt = new Runnable() {
+		public void run() {
+			ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
+			if(songImage != null)
+				albumFrame.setImageBitmap(songImage);
+			else{
+				albumFrame.setImageResource(android.R.color.transparent);
+			}
+		}
+	};
+
+	private void startUpdateAlbumArt() {
+
+		Thread t = new Thread() {
+			public void run() {
+				android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+				MediaMetadataRetriever acr = new MediaMetadataRetriever();
+				if(CurrentData.currentSong != null){
+
+					acr.setDataSource(CurrentData.currentSong.songData.get("songPath"));
+					try{
+						art = acr.getEmbeddedPicture();
+						songImage = BitmapFactory
+								.decodeByteArray(art, 0, art.length);
+						albumArtHandler.post(updateAlbumArt);
+					}
+					catch(Exception e){
+						songImage = null;
+					}
+					
+				}
+				else{
+					songImage = null;
+				}
+
+			}
+		};
+		t.start();
+	}
+
 
 	/**
 	 * Update timer on seekbar
@@ -687,39 +704,42 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	 * */
 	private Runnable mUpdateTimeTask = new Runnable() {
 		public void run() {
-			try{
+			if(mBound){
+				try{
 
-				long totalDuration = 0;
-				long currentDuration = 0;
+					if(mp.isReady() && CurrentData.currentSong != null){
+						totalDuration = mp.getDuration();
+						currentDuration = mp.getCurrentPosition();
+					}
+					else{
+						totalDuration = 0;
+						currentDuration = 0;
+					}
 
-				if(mp.isReady()){
-					totalDuration = mp.getDuration();
-					currentDuration = mp.getCurrentPosition();
+					// Displaying Total Duration time
+					songTotalDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(totalDuration)));
+					// Displaying time completed playing
+
+					if(currentDuration < totalDuration || CurrentData.currentSong == null){
+						songCurrentDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(currentDuration)));
+					}
+
+					// Updating progress bar
+					int progress = (int)(utils.getProgressPercentage(currentDuration, totalDuration));
+					//Log.d("Progress", ""+progress);
+					songProgressBar.setProgress(progress);
+
+					// Running this thread after 100 milliseconds
+					//				if (!stopTracking){
+					mHandler.postDelayed(this, 100);
+					//				}
+
+				}catch(NullPointerException e){
+
+				}catch(IllegalStateException e){
+
 				}
-
-				// Displaying Total Duration time
-				songTotalDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(totalDuration)));
-				// Displaying time completed playing
-
-				if(currentDuration < totalDuration){
-					songCurrentDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(currentDuration)));
-				}
-
-				// Updating progress bar
-				int progress = (int)(utils.getProgressPercentage(currentDuration, totalDuration));
-				//Log.d("Progress", ""+progress);
-				songProgressBar.setProgress(progress);
-
-				// Running this thread after 100 milliseconds
-
-				mHandler.postDelayed(this, 100);					
-
-			}catch(NullPointerException e){
-
-			}catch(IllegalStateException e){
-
 			}
-
 		}
 	};
 
@@ -770,7 +790,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			public void run() {
 				toast.cancel(); 
 			}
-		}, 500);
+		}, 800);
 
 	}
 

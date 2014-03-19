@@ -1,15 +1,21 @@
 package com.andrewkiluk.machmusicplayer;
 
+import com.andrewkiluk.machmusicplayer.MusicPlayerService.LocalBinder;
 import com.google.gson.Gson;
 
 import android.app.ActionBar;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -26,6 +32,13 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 	private Button button_clear_playlist;
 	private Button button_playlists;
 
+	private MusicPlayerService mService;
+	private boolean mBound;
+
+	public int pxToDp(int px){
+		return (int) (px / getResources().getDisplayMetrics().density);
+	}
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 
@@ -39,10 +52,23 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 
 		AppStatus.isVisible = true;
 
+		// Start the background service controlling the MediaPlayer object
+		Intent i = new Intent(getApplicationContext(), MusicPlayerService.class);
+		bindService(i, mConnection, Context.BIND_AUTO_CREATE);
+
 		button_add_songs = (Button) findViewById(R.id.button_add_songs);
 		button_clear_playlist = (Button) findViewById(R.id.button_clear_playlist);
 		button_playlists = (Button) findViewById(R.id.button_playlists);
 
+		DisplayMetrics displaymetrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+		int wt = displaymetrics.widthPixels;
+
+		if(pxToDp(wt) < 380){
+			button_add_songs.setPadding(10,0,10,0);
+			button_clear_playlist.setPadding(10,0,10,0);
+			button_playlists.setPadding(10,0,10,0);
+		}
 		ActionBar bar = getActionBar();
 		bar.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.tabcolor)));
 
@@ -65,6 +91,10 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 			@Override
 			public void onClick(View arg0) {
 				CurrentData.clearPlaylist();
+				if(mBound){
+					mService.reset();
+					CurrentData.currentSong = null;
+				}
 				final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
 				PlaylistFragment refresh = new PlaylistFragment();
 				ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
@@ -85,6 +115,46 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 
 
 	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		AppStatus.isVisible = false;
+
+		// Save the new player state in Shared Prefs:
+		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+		Gson gson = new Gson();
+		String songJson = gson.toJson(CurrentData.currentSong);
+		String playlistJson = gson.toJson(CurrentData.currentPlaylist);
+		SharedPreferences.Editor editor = sharedPrefs.edit();
+		editor.putString("currentSong", songJson);
+		editor.putString("currentPlaylist", playlistJson);
+		editor.putInt("currentSongIndex", CurrentData.currentSongIndex);
+		editor.commit();
+
+		// Unbind from the service
+		if (mBound) {
+			unbindService(mConnection);
+			mBound = false;
+		}
+	}
+
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(ComponentName className,
+				IBinder service) {
+			// We've bound to MusicPlayerService, cast the IBinder and get MusicPlayerService instance
+			LocalBinder binder = (LocalBinder) service;
+			mService = binder.getService();
+			mBound = true;
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			mBound = false;
+		}
+	};
 
 	/**
 	 * The following two methods are to set up the Settings menu.
@@ -122,15 +192,6 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 		in.putExtra("songIndex", songIndex);
 		CurrentData.currentSongIndex = songIndex;
 		CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(songIndex);
-		
-		// Save the new player state in Shared Prefs:
-		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		Gson gson = new Gson();
-		String songJson = gson.toJson(CurrentData.currentSong);
-		SharedPreferences.Editor editor = sharedPrefs.edit();
-		editor.putString("currentSong", songJson);
-		editor.putInt("currentSongIndex", CurrentData.currentSongIndex);
-		editor.commit();
 
 
 		setResult(100, in);
@@ -156,7 +217,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 			PlaylistFragment refresh = new PlaylistFragment();
 			ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
 			ft.commit(); 
-			
+
 			// Store the current playlist in system settings.
 			Gson gson = new Gson();
 			String currentPlaylistJson = gson.toJson(CurrentData.currentPlaylist);
@@ -165,7 +226,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 			SharedPreferences.Editor editor = sharedPrefs.edit();
 			editor.putString("currentPlaylist", currentPlaylistJson);
 			editor.commit();
-			
+
 		}
 
 	}

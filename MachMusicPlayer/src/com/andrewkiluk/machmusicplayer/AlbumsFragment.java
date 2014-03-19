@@ -23,7 +23,7 @@ public class AlbumsFragment extends ListFragment {
 	public int artistPosition;
 	public ListView lv;
 	int tempAlbumPosition; // This is used to keep track of which album we have a dialogue asking about. 
-	boolean selectAllSongsInAlbumPosition[];
+//	boolean selectAllSongsInAlbumPosition[];
 	// Since there's no concurrency in this situation, it's okay to have it global, and there's really no other good way to pass it. 
 	public String origin;
 
@@ -43,7 +43,7 @@ public class AlbumsFragment extends ListFragment {
 			albumsList = LibraryInfo.artistsList.get(artistPosition).albums;
 		}
 
-		selectAllSongsInAlbumPosition = new boolean[LibraryInfo.albumsList.size()];
+//		selectAllSongsInAlbumPosition = new boolean[LibraryInfo.albumsList.size()];
 
 
 		// looping through playlist

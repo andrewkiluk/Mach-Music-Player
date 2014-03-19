@@ -14,7 +14,6 @@ import android.widget.ListView;
 public class SongsFragment extends ListFragment {
 
 	private ListView lv;
-	boolean selectAllStart = false;
 	ArrayAdapterItem adapter;
 	public String origin;
 	public int artistPosition;
@@ -32,9 +31,6 @@ public class SongsFragment extends ListFragment {
 
 		else if(origin.equals("albums")){ //   Means that we're getting here from the albums menu
 			songsList = LibraryInfo.albumsList.get(albumPosition).songs;
-			//			if (getArguments().getBoolean("SelectAll")){
-			//				selectAllStart = true;
-			//			}
 		}
 		else{ // Means that we're getting here from the artists menu
 			songsList = LibraryInfo.artistsList.get(artistPosition).albums.get(albumPosition).songs;
@@ -82,13 +78,6 @@ public class SongsFragment extends ListFragment {
 					}
 				}
 			}
-
-			//			if (selectAllStart){
-			//				for(i=0; i< songsList.size(); i++){
-			//					adapter.selectedStatus[i] = true;
-			//				}
-			//			}
-
 
 			setListAdapter(adapter);
 		}

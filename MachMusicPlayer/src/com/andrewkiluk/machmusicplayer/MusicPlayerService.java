@@ -1,7 +1,6 @@
 package com.andrewkiluk.machmusicplayer;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Random;
 
 import android.app.AlarmManager;
@@ -23,13 +22,13 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 
 public class MusicPlayerService extends Service implements OnCompletionListener, MediaPlayer.OnPreparedListener, AudioManager.OnAudioFocusChangeListener {
@@ -46,9 +45,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 
 	private SharedPreferences sharedPrefs;
-
-
-
 
 	// This stores the old playback location if the audio focus is lost.
 	// It has to be a class because integers in Java are fucking stupid.
@@ -75,10 +71,17 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 	byte[] art;
 	Bitmap songImage;
+	Bitmap albumThumb;
 	private int largeIconHeight;
 	private int largeIconWidth;
 	int NOTIFICATION_HIDE_MINUTES;
 	int oldTimer;
+
+	PendingIntent piPlay;
+	PendingIntent piPause;
+	PendingIntent piNext;
+	PendingIntent piPrevious;
+	PendingIntent clickNotificationIntent;
 
 	public interface BoundServiceListener {
 		public void changeUIforSong(boolean isPlaying);
@@ -108,6 +111,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	public void onCreate(){
 
 		mp = new MediaPlayer();
+		mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 		po = new PlayerOptions();
 		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		initializeNotificationBroadcastReceiver();
@@ -121,6 +125,17 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		largeIconHeight = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
 		largeIconWidth = (int) res.getDimension(android.R.dimen.notification_large_icon_width);
 
+		// Create pending intents to send to MusicPlayerService upon notification button presses 
+		piPlay = PendingIntent.getBroadcast( this, 0, new Intent("com.andrewkiluk.notificationBroadcastReceiver.play"),0 );
+		piPause = PendingIntent.getBroadcast( this, 0, new Intent("com.andrewkiluk.notificationBroadcastReceiver.pause"),0 );
+		piNext = PendingIntent.getBroadcast(this, 0, new Intent("com.andrewkiluk.notificationBroadcastReceiver.next"), 0);
+		piPrevious = PendingIntent.getBroadcast(this, 0, new Intent("com.andrewkiluk.notificationBroadcastReceiver.previous"), 0);
+
+		//The intent to launch when the user clicks the expanded notification
+		Intent intent = new Intent(this, MusicPlayerActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		clickNotificationIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
 		// Load settings
 		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		oldTimer = sharedPrefs.getInt("currentTimer", 0);
@@ -131,6 +146,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		else{
 			NOTIFICATION_HIDE_MINUTES = 5;
 		}
+		PlayerOptions.isShuffle = sharedPrefs.getBoolean("isShuffle", false);
+		PlayerOptions.repeatMode = sharedPrefs.getString("repeatMode", "OFF");
 
 
 		// Audio focus listener
@@ -142,14 +159,21 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	@Override
 	public void onCompletion(MediaPlayer arg0) { 
 
-		// check for repeat is ON or OFF
-		if(po.isRepeat){
-			// repeat is on play same song again
+		// check whether repeat is ON or OFF
+		if(PlayerOptions.repeatMode == "SONG"){
+			// if repeat is on, play same song again
 			playSong();
-		} else {
+		} 
+		else if(CurrentData.currentSongIndex == CurrentData.currentPlaylist.songs.size()-1 && PlayerOptions.repeatMode.equals("OFF")){
+			Log.d("test", "Completed playlist");
+			PlayerStatus.endReached = true;
+			if (mListener!=null){
+				mListener.SetPlayButtonStatus("play");
+			}
+		}
+		else {
 			playNext();
 		}
-		Log.d("test", "Completion");
 	}
 
 
@@ -165,7 +189,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				mp.setOnCompletionListener(this);
 
 				mp.reset();
-				String songPath = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex).songData.get("songPath");
+				String songPath = CurrentData.currentSong.songData.get("songPath");
 				try {
 					mp.setDataSource(songPath);
 					mp.prepare();
@@ -270,7 +294,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		if(mListener  != null){
 			mListener.SetPlayButtonStatus("play");
 		}
-		createNotification(false);
+		updateNotification(false);
 		if(!AppStatus.isVisible){
 			setAlarm();
 		}
@@ -311,39 +335,39 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 	void playNext(){      
-		if(po.isShuffle){
-			// shuffle is on - play a random song
-			Random rand = new Random();
-			CurrentData.currentSongIndex = rand.nextInt((CurrentData.currentPlaylist.songs.size() - 1) - 0 + 1) + 0;
-			try{
-				CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
-			}catch(IndexOutOfBoundsException e){
+		if(CurrentData.currentPlaylist != null){
+
+			if(PlayerOptions.isShuffle){
+				// shuffle is on - play a random song
+				Random rand = new Random();
+				CurrentData.currentSongIndex = rand.nextInt((CurrentData.currentPlaylist.songs.size() - 1) - 0 + 1) + 0;
+				try{
+					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
+				}catch(IndexOutOfBoundsException e){
+
+				}
+				playSong();
+			} // shuffle is not on - play next song
+			else if(CurrentData.currentSongIndex < (CurrentData.currentPlaylist.songs.size() - 1)){ // if we're not at the last song of the playlist
+				CurrentData.currentSongIndex = CurrentData.currentSongIndex + 1;
+				try{
+					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
+				}catch(IndexOutOfBoundsException e){
+
+				}
+
+				playSong();
 
 			}
-			playSong();
-		} else{
-			// no repeat or shuffle ON - play next song
-			if(CurrentData.currentPlaylist != null){
-				if(CurrentData.currentSongIndex < (CurrentData.currentPlaylist.songs.size() - 1)){
-					CurrentData.currentSongIndex = CurrentData.currentSongIndex + 1;
-					try{
-						CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
-					}catch(IndexOutOfBoundsException e){
+			else{ // if we ARE at the last song of the playlist
+				// play first song
+				CurrentData.currentSongIndex = 0;
+				try{
+					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
+				}catch(IndexOutOfBoundsException e){
 
-					}
-
-					playSong();
-
-				}else{
-					// play first song
-					CurrentData.currentSongIndex = 0;
-					try{
-						CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
-					}catch(IndexOutOfBoundsException e){
-
-					}
-					playSong();
 				}
+				playSong();
 			}
 		}
 		// Save the new player state in Shared Prefs:
@@ -363,7 +387,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 	void playPrevious(){
-		if(po.isShuffle){
+		if(mp.getCurrentPosition() > 3000){
+			mp.seekTo(0);
+		}
+		else if(PlayerOptions.isShuffle){
 			// shuffle is on - play a random song
 			Random rand = new Random();
 			CurrentData.currentSongIndex = rand.nextInt((CurrentData.currentPlaylist.songs.size() - 1) - 0 + 1) + 0;
@@ -417,7 +444,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		try{
 			mp.setDataSource(input);
 			playerReady = true;
-		}catch(Exception e){
+		}catch(IOException e){
 
 		}
 	}
@@ -441,7 +468,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	public void prepare() {
 		try{
 			mp.prepare();
-		}catch(Exception e){
+		}catch(IOException e){
 
 		}
 	}
@@ -471,7 +498,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			}
 		}
 	}
-	
+
 	public void play() {
 
 		if  (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
@@ -482,34 +509,27 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			mp.reset();
 			try {
 				mp.setDataSource(CurrentData.currentSong.songData.get("songPath"));
-			} catch (Exception e) {
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (IndexOutOfBoundsException e) {
 				e.printStackTrace();
 			} 
 
 			mp.setOnPreparedListener(this);
 			mp.prepareAsync(); // prepare asynchronously to not block main thread
-			}
+		}
 	}
 
 	public void createNotification(boolean isPlaying)
 	{
 
-		int myID = 1234;
-		
 		updateCurrentSong();
-
-		//The intent to launch when the user clicks the expanded notification
-		Intent intent = new Intent(this, MusicPlayerActivity.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-		PendingIntent pendIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-		Bitmap albumThumb;
 
 		try {
 			// Used to read ID3 tags and retrieve album art.
 			MediaMetadataRetriever acr = new MediaMetadataRetriever();
 			acr.setDataSource(CurrentData.currentSong.songData.get("songPath"));
-			
+
 			art = acr.getEmbeddedPicture();
 			songImage = BitmapFactory
 					.decodeByteArray(art, 0, art.length);
@@ -520,52 +540,72 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			albumThumb = null;
 			songImage = null;
 		}
+		updateNotification(isPlaying);
 
-		// Create pending intents to send to MusicPlayerService upon button presses 
-		PendingIntent piPlay = PendingIntent.getBroadcast( this, 0, new Intent("com.andrewkiluk.notificationBroadcastReceiver.play"),0 );
-		PendingIntent piPause = PendingIntent.getBroadcast( this, 0, new Intent("com.andrewkiluk.notificationBroadcastReceiver.pause"),0 );
-		PendingIntent piNext = PendingIntent.getBroadcast(this, 0, new Intent("com.andrewkiluk.notificationBroadcastReceiver.next"), 0);
-		PendingIntent piPrevious = PendingIntent.getBroadcast(this, 0, new Intent("com.andrewkiluk.notificationBroadcastReceiver.previous"), 0);
+	}
 
+	public void updateNotification(boolean isPlaying) {
+		final int notificationID = 1;
 
-		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		boolean big_notifications = sharedPrefs.getBoolean("big_notifications", true);
+		updateCurrentSong();
 
 		notificationBuilder = new NotificationCompat.Builder(this);
-		notificationBuilder.setOngoing(true)
-		.setPriority(Notification.PRIORITY_HIGH)
-		.setWhen(0)
-		.setContentIntent(pendIntent)
-		.setContentTitle(currentSongTitle)
-		.setContentText(currentSongArtist)
-		.setSmallIcon(R.drawable.ic_action_play);
-		if (big_notifications && songImage != null){
-			notificationBuilder.setStyle(new NotificationCompat.BigPictureStyle()
-			.setSummaryText(currentSongArtist)
-			.bigPicture(songImage));
-		}
-		else{
-			notificationBuilder.setLargeIcon(albumThumb);
-		}
-		if (!isPlaying){
-			notificationBuilder.addAction (R.drawable.ic_action_previous, "Back", piPrevious)
-			.addAction (R.drawable.ic_action_play, "Play", piPlay)
-			.addAction (R.drawable.ic_action_next, "Next", piNext);
-		}
-		if (isPlaying){
-			notificationBuilder.addAction (R.drawable.ic_action_previous, "Back", piPrevious)
-			.addAction (R.drawable.ic_action_pause, "Pause", piPause)
-			.addAction (R.drawable.ic_action_next, "Next", piNext);
-		}
+		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+		final boolean localIsPlaying = isPlaying;
+
+		class setNotification implements Runnable {
+			public void run() {
+
+				android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+
+				boolean big_notifications = sharedPrefs.getBoolean("big_notifications", true);
+
+				notificationBuilder.setOngoing(true)
+				.setPriority(Notification.PRIORITY_HIGH)
+				.setWhen(0)
+				.setContentIntent(clickNotificationIntent)
+				.setContentTitle(currentSongTitle)
+				.setContentText(currentSongArtist)
+				.setSmallIcon(R.drawable.ic_action_play);
+				if (big_notifications && songImage != null){
+					notificationBuilder.setStyle(new NotificationCompat.BigPictureStyle()
+					.setSummaryText(currentSongArtist)
+					.bigPicture(songImage));
+				}
+				else{
+					notificationBuilder.setLargeIcon(albumThumb);
+				}
+				if (!localIsPlaying){
+					notificationBuilder.addAction (R.drawable.ic_action_previous, "Back", piPrevious)
+					.addAction (R.drawable.ic_action_play, "Play", piPlay)
+					.addAction (R.drawable.ic_action_next, "Next", piNext);
+				}
+				if (localIsPlaying){
+					notificationBuilder.addAction (R.drawable.ic_action_previous, "Back", piPrevious)
+					.addAction (R.drawable.ic_action_pause, "Pause", piPause)
+					.addAction (R.drawable.ic_action_next, "Next", piNext);
+				}
 
 
-		Notification notification = notificationBuilder.build();
+				Notification notification = notificationBuilder.build();
 
 
-		notification.flags |= Notification.FLAG_NO_CLEAR;
-		startForeground(myID, notification);
-		PlayerStatus.notification_set = true;
+				notification.flags |= Notification.FLAG_NO_CLEAR;
+				startForeground(notificationID, notification);
+				PlayerStatus.notification_set = true;	
+
+
+			}
+		};
+
+		setNotification setNot = new setNotification();
+
+		setNot.run();
+
 	}
+
+
 
 	public void pause() {
 		mp.pause();
@@ -583,13 +623,13 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		return po;
 	}
 
-	public boolean isShuffle() {
-		return po.isShuffle;
-	}
+	//	public boolean isShuffle() {
+	//		return PlayerOptions.isShuffle;
+	//	}
 
-	public boolean isRepeat() {
-		return po.isRepeat;
-	}
+	//	public boolean isRepeat() {
+	//		return PlayerOptions.isRepeat;
+	//	}
 
 	public boolean isPlaying() {
 		if (mp == null)
@@ -615,7 +655,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	{
 		return mp.getCurrentPosition();
 	}
-	
+
 	public int getOldTimer(){
 		return oldTimer;
 	}
@@ -634,9 +674,16 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 
-	public void updateCurrentSong(){
-		currentSongArtist = CurrentData.currentSong.songData.get("songArtist");
-		currentSongTitle = CurrentData.currentSong.songData.get("songTitle");
+	public void updateCurrentSong(){ 
+
+		if(CurrentData.currentSong != null){
+			currentSongArtist = CurrentData.currentSong.songData.get("songArtist");
+			currentSongTitle = CurrentData.currentSong.songData.get("songTitle");
+		}
+		else{
+			currentSongArtist = " ";
+			currentSongTitle = " ";	
+		}
 
 
 	}
@@ -671,11 +718,18 @@ class PlayerStatus {
 	public static boolean notification_set = false;
 	public static boolean alarm_set = false;
 	public static boolean playlistReset;
+	public static boolean endReached = false;
 }
 
 // CurrentData should hold more temporary data than LibraryInfo.
 
 class CurrentData {
+	// Default constructor
+	CurrentData()
+	{
+		currentSong = new Song("Song", "Album", "Artist", "NOPATH");
+	}
+
 	public static Song currentSong;
 	public static Playlist currentPlaylist;
 	public static int currentSongIndex;
@@ -688,10 +742,10 @@ class CurrentData {
 class PlayerOptions	{
 	// Default constructor
 	PlayerOptions(){
-		isRepeat = false;
+		repeatMode = "OFF";
 		isShuffle = false;
 	}
-	public boolean isRepeat;
-	public boolean isShuffle;
+	public static String repeatMode;
+	public static boolean isShuffle;
 }
 

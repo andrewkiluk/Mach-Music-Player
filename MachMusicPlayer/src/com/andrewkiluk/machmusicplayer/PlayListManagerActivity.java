@@ -1,5 +1,8 @@
 package com.andrewkiluk.machmusicplayer;
 
+import java.util.Collections;
+import java.util.Comparator;
+
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -90,14 +93,12 @@ public class PlayListManagerActivity extends FragmentActivity implements Playlis
 
 							LibraryInfo.playlists.add(newPlaylist);
 
-							
-							
-							
-							// Probably sort playlists by name!!
-							
-							
-							
-							
+							// Sort playlists alphabetically
+							Collections.sort(LibraryInfo.playlists, new Comparator<Playlist>(){
+								public int compare(Playlist one, Playlist two) {
+									return one.name.compareTo(two.name);
+								}
+							});
 							
 						}
 

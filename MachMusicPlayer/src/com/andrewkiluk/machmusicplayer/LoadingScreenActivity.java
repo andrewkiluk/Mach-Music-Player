@@ -29,6 +29,8 @@ public class LoadingScreenActivity extends Activity {
 
 
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+		
+		CurrentData init = new CurrentData(); // Used to initialize static fields in CurrentData
 
 		oldsongsListJson = sharedPrefs.getString("songsList", "NULL");
 		if (oldsongsListJson != "NULL"){
