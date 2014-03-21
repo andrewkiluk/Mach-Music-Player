@@ -223,7 +223,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 	protected void onActivityResult(int requestCode,
 			int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if(resultCode == 200){
+		if(resultCode == 200){ // New playlist loaded
 
 			// Update UI
 			final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
@@ -237,6 +237,24 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 			mService.loadCurrentSong();
 //			mService.reset();
 
+			// Store the current playlist in system settings.
+			Gson gson = new Gson();
+			String currentPlaylistJson = gson.toJson(CurrentData.currentPlaylist);
+
+			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+			SharedPreferences.Editor editor = sharedPrefs.edit();
+			editor.putString("currentPlaylist", currentPlaylistJson);
+			editor.commit();
+
+		}
+		if(resultCode == 300){ // New songs added
+
+			// Update UI
+			final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
+			PlaylistFragment refresh = new PlaylistFragment();
+			ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
+			ft.commit(); 
+			
 			// Store the current playlist in system settings.
 			Gson gson = new Gson();
 			String currentPlaylistJson = gson.toJson(CurrentData.currentPlaylist);

@@ -360,7 +360,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 					CurrentData.shuffleHistoryPosition = CurrentData.shuffleHistoryPosition - 1;
 					for(Iterator<Song> itr = CurrentData.shuffleHistory.iterator(); i < CurrentData.shuffleHistoryPosition; i++)  {
 						newSong = itr.next();
-						Log.d("shuffle", "go go go");
 					}
 					
 					CurrentData.currentSong = newSong;
@@ -370,9 +369,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				}
 				else{
 					
-					Log.d("shuffle", "index:" + CurrentData.currentSongIndex);
-					Log.d("shuffle", "repeat mode:" + PlayerOptions.repeatMode);
-
 					// Not in shuffle history
 					if(CurrentData.currentSongIndex + 1 >= CurrentData.currentPlaylist.songs.size()){
 						
@@ -380,10 +376,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 						
 						if(PlayerOptions.repeatMode.equals("SONG")){
 							playSong();
-							return;
-						}
-						if(PlayerOptions.repeatMode.equals("OFF")){
-							Log.d("shuffle", "repeatoff");
 							return;
 						}
 					}

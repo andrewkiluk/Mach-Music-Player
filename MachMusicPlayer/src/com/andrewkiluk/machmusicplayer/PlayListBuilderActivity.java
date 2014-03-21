@@ -100,7 +100,7 @@ ActionBar.TabListener{
 				}
 					LibraryInfo.newSongs = new ArrayList<Song>();
 
-				setResult(200, intent);
+				setResult(300, intent);
 				// Closing PlayListBuilder
 				LibraryInfo.newSongs = new ArrayList<Song>();
 				finish();
