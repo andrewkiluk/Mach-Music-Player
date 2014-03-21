@@ -1,6 +1,7 @@
 package com.andrewkiluk.machmusicplayer;
 
 import java.lang.reflect.Type;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 
 import android.app.Activity;
@@ -31,11 +32,25 @@ public class LoadingScreenActivity extends Activity {
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		CurrentData init = new CurrentData(); // Used to initialize static fields in CurrentData
+		
+		// Load old shuffle status
+		String shuffleHistory = sharedPrefs.getString("shuffleHistory", "NULL");
+		Type dequeType = new TypeToken<ArrayDeque<Song>>() {}.getType();
+		Gson gson = new Gson();
+		if(!shuffleHistory.equals("NULL") ){
+			CurrentData.shuffleHistory = gson.fromJson(shuffleHistory, dequeType);
+		}
+		String shuffleQueue = sharedPrefs.getString("shuffleQueue", "NULL");
+		if(!shuffleQueue.equals("NULL") ){
+			CurrentData.shuffleQueue = gson.fromJson(shuffleQueue, Playlist.class);
+		}
+		CurrentData.shuffleHistoryPosition = sharedPrefs.getInt("shuffleHistoryPosition", 0);
 
+		// Load old songsList
 		oldsongsListJson = sharedPrefs.getString("songsList", "NULL");
 		if (oldsongsListJson != "NULL"){
 
-			Gson gson = new Gson();
+			gson = new Gson();
 			Type listType = new TypeToken<ArrayList<Song>>() {}.getType();
 			LibraryFiller libFill = new LibraryFiller(getApplicationContext());
 			LibraryInfo initializer = new LibraryInfo();
@@ -91,6 +106,11 @@ public class LoadingScreenActivity extends Activity {
 				LibraryInfo.playlists = gson.fromJson(oldPlaylistsJson, playlistType);
 			}
 			else{
+				LibraryInfo.playlists = new ArrayList<Playlist>();
+			}
+			try{
+				LibraryInfo.playlists.isEmpty(); // This is to test whether we have a valid list of playlists
+			}catch(Exception e){
 				LibraryInfo.playlists = new ArrayList<Playlist>();
 			}
 

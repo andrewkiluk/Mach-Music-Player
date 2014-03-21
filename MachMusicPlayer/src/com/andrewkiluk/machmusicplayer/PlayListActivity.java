@@ -38,6 +38,12 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 	public int pxToDp(int px){
 		return (int) (px / getResources().getDisplayMetrics().density);
 	}
+	
+	public void playerReset(){
+		if(mBound){
+			mService.reset();
+		}
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -94,7 +100,11 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 				if(mBound){
 					mService.reset();
 					CurrentData.currentSong = null;
+					PlayerStatus.playerReady = false;
 				}
+				// Playlist has been modified, reset the shuffle queue
+				CurrentData.shuffleReset();
+				
 				final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
 				PlaylistFragment refresh = new PlaylistFragment();
 				ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
@@ -192,6 +202,9 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 		in.putExtra("songIndex", songIndex);
 		CurrentData.currentSongIndex = songIndex;
 		CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(songIndex);
+		
+		// The shuffle scheme is interrupted here, so just reset it.
+		CurrentData.shuffleReset();
 
 
 		setResult(100, in);
@@ -217,6 +230,12 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 			PlaylistFragment refresh = new PlaylistFragment();
 			ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
 			ft.commit(); 
+			
+			// Clear the old song data and load the first song of the new playlist
+			CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
+			CurrentData.currentSongIndex = 0;
+			mService.loadCurrentSong();
+//			mService.reset();
 
 			// Store the current playlist in system settings.
 			Gson gson = new Gson();
@@ -230,14 +249,4 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 		}
 
 	}
-	// Useless for now, will use later to receive intents from playlist builder
-	//	@Override
-	//    protected void onActivityResult(int requestCode,
-	//                                     int resultCode, Intent data) {
-	//        super.onActivityResult(requestCode, resultCode, data);
-	//        if(resultCode == 100){
-	//
-	//        }
-	// 
-	//    }
 }

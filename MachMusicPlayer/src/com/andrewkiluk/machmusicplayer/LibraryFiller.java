@@ -27,6 +27,8 @@ public class LibraryFiller {
 	boolean directorySpecified = false;
 	Context context;
 	boolean filteringOn;
+	boolean onlyAlbumArtists;
+	boolean removeDuplicateSongs;
 
 
 	// Constructor
@@ -41,6 +43,8 @@ public class LibraryFiller {
 		directorySpecified = false;
 		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 		filteringOn = sharedPrefs.getBoolean("filteringOn", true);
+		onlyAlbumArtists = sharedPrefs.getBoolean("onlyAlbumArtists", true);
+		removeDuplicateSongs = sharedPrefs.getBoolean("removeDuplicateSongs", true);
 	}
 
 	/**
@@ -126,27 +130,31 @@ public class LibraryFiller {
 		//  Section this off later as an option!!!!!
 		//
 		//
+		if(onlyAlbumArtists){
 
-		// We now remove artists which do not own albums
-		ArrayList<Artist> filtered = new ArrayList<Artist>(LibraryInfo.artistsList);
-		for (Artist artist : LibraryInfo.artistsList){
-			if (artist.albums.isEmpty()){
-				filtered.remove(artist);
+			// We now remove artists which do not own albums
+			ArrayList<Artist> filtered = new ArrayList<Artist>(LibraryInfo.artistsList);
+			for (Artist artist : LibraryInfo.artistsList){
+				if (artist.albums.isEmpty()){
+					filtered.remove(artist);
+				}
 			}
-		}
-		LibraryInfo.artistsList = filtered;
+			LibraryInfo.artistsList = filtered;
 
+		}
 
 		// Sort the album tracks.
 		for (Album album : LibraryInfo.albumsList){
 			Collections.sort(album.songs);  // This may not be working, test!
 		}
-		// Sort songs alphabetically
-		Collections.sort(LibraryInfo.songsList, new Comparator<Song>(){
-			public int compare(Song one, Song two) {
-				return one.songData.get("songTitle").compareTo(two.songData.get("songTitle"));
-			}
-		});
+		// Sort the albums for each artist.
+		for (int i=0 ; i<LibraryInfo.artistsList.size() ; i++){
+			Collections.sort(LibraryInfo.artistsList.get(i).albums, new Comparator<Album>(){
+				public int compare(Album one, Album two) {
+					return one.title.compareTo(two.title);
+				}  // This may not be working, test!
+			});
+		}
 		// Sort artists alphabetically
 		Collections.sort(LibraryInfo.artistsList, new Comparator<Artist>(){
 			public int compare(Artist one, Artist two) {
@@ -242,6 +250,27 @@ public class LibraryFiller {
 				// Adding each song to SongList
 				LibraryInfo.songsList.add(new Song(songData));
 			} while (cursor.moveToNext());
+
+			// Sort songs alphabetically
+			Collections.sort(LibraryInfo.songsList, new Comparator<Song>(){
+				public int compare(Song one, Song two) {
+					return one.songData.get("songTitle").compareTo(two.songData.get("songTitle"));
+				}
+			});
+
+			if(removeDuplicateSongs){
+				// Remove duplicate songs
+				ArrayList<Song> filtered = new ArrayList<Song>(LibraryInfo.songsList);
+				
+				int numberRemoved = 0;
+				for(int i = 0; i < LibraryInfo.songsList.size() - 1; i++){
+					if (LibraryInfo.songsList.get(i).equals(LibraryInfo.songsList.get(i+1))){
+						filtered.remove(i+1 - numberRemoved);
+						numberRemoved = numberRemoved + 1;
+					}
+				}
+				LibraryInfo.songsList = filtered;
+			}
 		}
 	}
 
@@ -328,9 +357,6 @@ class Song implements Comparable<Song>
 		this.songData = newCopy;
 	}
 
-
-
-
 	Song(String title, String album, String artist, String path){
 		songData = new HashMap<String, String>();
 		songData.put("songArtist", artist);
@@ -376,6 +402,15 @@ class Song implements Comparable<Song>
 	public int compareTo(Song other)
 	{
 		return this.track() - other.track();
+	}
+	public boolean equals(Song other){
+		if(this.title().equals(other.title() ) && this.artist().equals(other.artist() ) && this.album().equals(other.album() )){
+			return true;
+		}
+		else{
+			return false;
+		}
+
 	}
 }
 

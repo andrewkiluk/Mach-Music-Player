@@ -140,7 +140,7 @@ public class SongsFragment extends ListFragment {
 				// if it's in the add queue, remove it, otherwise add it to the add queue.
 				if(localNewSongs.contains(newSong)){
 					for(Song song : localNewSongs){
-						if(song.title().equals(newSong.title() ) && song.artist().equals(newSong.artist() ) && song.album().equals(newSong.album() )){
+						if(song.equals(newSong)){
 							LibraryInfo.newSongs.remove(LibraryInfo.newSongs.indexOf(song));
 						}
 					}

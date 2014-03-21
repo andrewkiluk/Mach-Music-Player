@@ -29,6 +29,18 @@
 
         <CheckBoxPreference
             android:defaultValue="true"
+            android:key="removeDuplicateSongs"
+            android:summary="Only allow one song with a given Title/Album/Artist combination. This may result in odd behavior if disabled."
+            android:title="Remove Duplicate Songs" />
+        
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="onlyAlbumArtists"
+            android:summary="Only list artists who own albums. This will prevent multiple artists from showing up from complilations."
+            android:title="Only Show Album Artists" />
+        
+        <CheckBoxPreference
+            android:defaultValue="true"
             android:key="filteringOn"
             android:summary="Attempt to filter out system sounds and ringtones."
             android:title="File Filtering" />

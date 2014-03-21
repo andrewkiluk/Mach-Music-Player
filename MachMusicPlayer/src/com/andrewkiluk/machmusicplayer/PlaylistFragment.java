@@ -25,6 +25,7 @@ public class PlaylistFragment extends ListFragment {
 
 	public interface TouchListener {
 		public void songPicked(int songIndex);
+		public void playerReset();
 	}
 
 	int currentSongPosition;
@@ -106,8 +107,17 @@ public class PlaylistFragment extends ListFragment {
 						for(Song song : localPlaylist.songs){
 							if(song.title().equals(oldSong.title() ) && song.artist().equals(oldSong.artist() ) && song.album().equals(oldSong.album() )){
 								CurrentData.currentPlaylist.songs.remove(localPlaylist.songs.indexOf(song));
+								if(CurrentData.currentSong.title().equals(oldSong.title() ) && CurrentData.currentSong.artist().equals(oldSong.artist() ) 
+										&& CurrentData.currentSong.album().equals(oldSong.album() )){
+									CurrentData.currentSong = null;
+									PlayerStatus.playerReady = false;
+									onSongPickedListener.playerReset();
+								}
 							}
 						}
+						
+						// Playlist has been modified, reset the shuffle queue
+						CurrentData.shuffleReset();
 						
 						// Update UI
 						final FragmentTransaction ft = getFragmentManager().beginTransaction(); 

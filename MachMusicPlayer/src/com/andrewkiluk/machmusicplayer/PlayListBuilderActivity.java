@@ -95,6 +95,8 @@ ActionBar.TabListener{
 					for (Song song : LibraryInfo.newSongs){
 						CurrentData.currentPlaylist.songs.add(song);
 					}
+					// Playlist has been modified, reset the shuffle queue
+					CurrentData.shuffleReset();
 				}
 					LibraryInfo.newSongs = new ArrayList<Song>();
 

@@ -76,12 +76,10 @@ public class PlaylistManagerFragment extends ListFragment {
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
 				
-				
+				// Set current playlist to chosen one
 				CurrentData.currentPlaylist = new Playlist(LibraryInfo.playlists.get(position).songs, "__CURRENT_PLAYLIST__"); 
-				
 				onPlaylistPickedListener.playlistPicked(position);
-
-				// Send message to playlist activity that playlist has been chosen
+				
 			}
 		});
 

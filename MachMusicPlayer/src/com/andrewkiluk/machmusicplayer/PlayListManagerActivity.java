@@ -161,6 +161,10 @@ public class PlayListManagerActivity extends FragmentActivity implements Playlis
 		// Sending playlist name to PlayerActivity
 		in.putExtra("playlistName", LibraryInfo.playlists.get(position).name);
 		setResult(200, in); // 200 tells the playlist activity to refresh the playlist fragment
+		
+		// Playlist has been modified, reset the shuffle queue
+		CurrentData.shuffleReset();
+		
 		// Closing PlayListView
 		finish();
 	}

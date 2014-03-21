@@ -1,6 +1,9 @@
 package com.andrewkiluk.machmusicplayer;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.Random;
 
 import android.app.AlarmManager;
@@ -39,9 +42,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	private NotificationManager mNotificationManager;
 	private NotificationCompat.Builder notificationBuilder;
 	private BroadcastReceiver notificationBroadcastReceiver;
-
-
-	private boolean playerReady = true; 
 
 
 	private SharedPreferences sharedPrefs;
@@ -140,7 +140,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		oldTimer = sharedPrefs.getInt("currentTimer", 0);
 		String sleep = sharedPrefs.getString("serviceSleepDelay", "NULL");
-		if(sleep != "NULL"){
+		if(!sleep.equals("NULL")){
 			NOTIFICATION_HIDE_MINUTES = Integer.parseInt(sleep);
 		}
 		else{
@@ -148,8 +148,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		}
 		PlayerOptions.isShuffle = sharedPrefs.getBoolean("isShuffle", false);
 		PlayerOptions.repeatMode = sharedPrefs.getString("repeatMode", "OFF");
-
-
+		
 		// Audio focus listener
 		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -205,6 +204,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			else if (!mp.isPlaying()){
 				if (shouldResume){
 					mp.start();
+					shouldResume = false;
 				}
 			}
 			mp.setVolume(1.0f, 1.0f);
@@ -337,18 +337,87 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	void playNext(){      
 		if(CurrentData.currentPlaylist != null){
 
-			if(PlayerOptions.isShuffle){
-				// shuffle is on - play a random song
-				Random rand = new Random();
-				CurrentData.currentSongIndex = rand.nextInt((CurrentData.currentPlaylist.songs.size() - 1) - 0 + 1) + 0;
-				try{
-					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
-				}catch(IndexOutOfBoundsException e){
-
-				}
+			if(CurrentData.currentSong == null){
+				CurrentData.currentSongIndex = 0;
+				CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
 				playSong();
+			}
+			else if(PlayerOptions.isShuffle){  // shuffle is on
+				if(CurrentData.shuffleHistory.isEmpty()){
+					// If the shuffle queue is empty, add the current song to it and remove that song from the shuffle queue.
+					CurrentData.shuffleHistory.addFirst(CurrentData.currentSong);
+					for (int i = 0; i < CurrentData.currentPlaylist.songs.size(); i++){
+						if(CurrentData.currentPlaylist.songs.get(i).equals(CurrentData.currentSong)){
+							CurrentData.shuffleQueue.songs.remove(i);
+						}
+					}
+					
+				}
+				Song newSong = CurrentData.currentSong;
+				// Check if we're in the shuffle history
+				if (CurrentData.shuffleHistoryPosition > 1){
+					int i = 0;
+					CurrentData.shuffleHistoryPosition = CurrentData.shuffleHistoryPosition - 1;
+					for(Iterator<Song> itr = CurrentData.shuffleHistory.iterator(); i < CurrentData.shuffleHistoryPosition; i++)  {
+						newSong = itr.next();
+						Log.d("shuffle", "go go go");
+					}
+					
+					CurrentData.currentSong = newSong;
+					playSong();
+					Log.d("shuffle", "Size: " + CurrentData.shuffleHistory.size());
+					Log.d("shuffle", "Position: " + CurrentData.shuffleHistoryPosition);
+				}
+				else{
+					
+					Log.d("shuffle", "index:" + CurrentData.currentSongIndex);
+					Log.d("shuffle", "repeat mode:" + PlayerOptions.repeatMode);
+
+					// Not in shuffle history
+					if(CurrentData.currentSongIndex + 1 >= CurrentData.currentPlaylist.songs.size()){
+						
+						Log.d("shuffle", "size trigger");
+						
+						if(PlayerOptions.repeatMode.equals("SONG")){
+							playSong();
+							return;
+						}
+						if(PlayerOptions.repeatMode.equals("OFF")){
+							Log.d("shuffle", "repeatoff");
+							return;
+						}
+					}
+					// Make sure we have a list to choose from
+					if(CurrentData.shuffleQueue.songs.isEmpty()){
+						CurrentData.shuffleQueue = new Playlist(CurrentData.currentPlaylist);
+						Log.d("shuffle", "reshuffle");
+					}
+
+					Random rand = new Random();
+					CurrentData.currentSongIndex = CurrentData.currentSongIndex + 1;
+
+					int nextSongIndex = rand.nextInt((CurrentData.shuffleQueue.songs.size()));
+					Song nextSong = CurrentData.shuffleQueue.songs.get(nextSongIndex);
+					CurrentData.shuffleQueue.songs.remove(nextSongIndex);
+					CurrentData.shuffleHistory.addFirst(nextSong);
+					CurrentData.currentSong = nextSong;
+
+					playSong();
+					Log.d("shuffle", "Size: " + CurrentData.shuffleHistory.size());
+					Log.d("shuffle", "Position: " + CurrentData.shuffleHistoryPosition);
+				}
+				
+				Gson gson = new Gson();
+				String shuffleHistoryJson = gson.toJson(CurrentData.shuffleHistory);
+				String shuffleQueueJson = gson.toJson(CurrentData.shuffleQueue);
+				
+				SharedPreferences.Editor editor = sharedPrefs.edit();
+				editor.putString("shuffleHistory", shuffleHistoryJson);
+				editor.putString("shuffleQueue", shuffleQueueJson);
+				editor.putInt("shuffleHistoryPosition", CurrentData.shuffleHistoryPosition);
+				editor.commit();
 			} // shuffle is not on - play next song
-			else if(CurrentData.currentSongIndex < (CurrentData.currentPlaylist.songs.size() - 1)){ // if we're not at the last song of the playlist
+			else if(CurrentData.currentSongIndex < (CurrentData.currentPlaylist.songs.size() - 1)){ // if we're NOT at the last song of the playlist
 				CurrentData.currentSongIndex = CurrentData.currentSongIndex + 1;
 				try{
 					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
@@ -371,7 +440,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			}
 		}
 		// Save the new player state in Shared Prefs:
-		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		Gson gson = new Gson();
 		String songJson = gson.toJson(CurrentData.currentSong);
 
@@ -391,17 +459,42 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			mp.seekTo(0);
 		}
 		else if(PlayerOptions.isShuffle){
-			// shuffle is on - play a random song
-			Random rand = new Random();
-			CurrentData.currentSongIndex = rand.nextInt((CurrentData.currentPlaylist.songs.size() - 1) - 0 + 1) + 0;
-			try{
-				CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
-			}catch(IndexOutOfBoundsException e){
+			if (CurrentData.shuffleHistoryPosition < CurrentData.shuffleHistory.size()){
+				int i = 0;
+				Song newSong = CurrentData.currentSong;
+				
+				// WOW This is SUPER ugly it works. The problem is that 0 and 1 are treated the same, 
+				// so there's some weird lag when switching directions via previous / next.
+				// This could probably be done better, but it works right not and it's not the biggest deal.
+				if(CurrentData.shuffleHistoryPosition == 0){   
+					CurrentData.shuffleHistoryPosition = 1;
+				}
 
+				CurrentData.shuffleHistoryPosition = CurrentData.shuffleHistoryPosition + 1;
+				
+				for(Iterator<Song> itr = CurrentData.shuffleHistory.iterator(); i < CurrentData.shuffleHistoryPosition; i++)  {
+					newSong = itr.next();
+					Log.d("shuffle", "back back back");
+				}
+				
+				
+				
+				CurrentData.currentSongIndex = CurrentData.currentSongIndex - 1;
+				if (CurrentData.currentSongIndex < 0){
+					CurrentData.currentSongIndex = 0;
+				}
+				CurrentData.currentSong = newSong;
+				playSong();
+				Log.d("shuffle", "Size: " + CurrentData.shuffleHistory.size());
+				Log.d("shuffle", "Position: " + CurrentData.shuffleHistoryPosition);
 			}
-			playSong();
+			else{
+				playSong();
+				Log.d("shuffle", "Size: " + CurrentData.shuffleHistory.size());
+				Log.d("shuffle", "Position: " + CurrentData.shuffleHistoryPosition);
+			}
 		} else{
-			// no shuffle ON - play previous song
+			// shuffle off - play previous song
 			if(CurrentData.currentSongIndex != 0){
 				CurrentData.currentSongIndex = CurrentData.currentSongIndex - 1;
 				try{
@@ -443,7 +536,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	public void setDataSource(String input){
 		try{
 			mp.setDataSource(input);
-			playerReady = true;
+			PlayerStatus.playerReady = true;
 		}catch(IOException e){
 
 		}
@@ -484,7 +577,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 	public void playSong(){
-		if(CurrentData.currentPlaylist.songs.size() != 0){
+		if(CurrentData.currentSong != null){
 			try{
 				play();
 				currentSongArtist = CurrentData.currentSong.songData.get("songArtist");
@@ -496,6 +589,11 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			}catch(IndexOutOfBoundsException e){
 				pausePlayer();
 			}
+		}
+		else if(CurrentData.currentPlaylist.songs.size() != 0){
+			CurrentData.currentSongIndex = 0;
+			CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
+			playSong();
 		}
 	}
 
@@ -514,10 +612,23 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			} catch (IndexOutOfBoundsException e) {
 				e.printStackTrace();
 			} 
-
 			mp.setOnPreparedListener(this);
 			mp.prepareAsync(); // prepare asynchronously to not block main thread
 		}
+	}
+
+	public void loadCurrentSong(){
+		mp.reset();
+		try {
+			mp.setDataSource(CurrentData.currentSong.songData.get("songPath"));
+			//			mp.prepare();
+			PlayerStatus.playerReady = false;
+			PlayerStatus.timerReset = true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
+		} 
 	}
 
 	public void createNotification(boolean isPlaying)
@@ -660,15 +771,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		return oldTimer;
 	}
 
-	public boolean isReady()
-	{
-		return playerReady;
-	}
-
 
 	/** Called when MediaPlayer is ready */
 	public void onPrepared(MediaPlayer player) {
-		playerReady = true;
+		PlayerStatus.playerReady = true;
 		player.start();
 		mp.setOnCompletionListener(this);
 	}
@@ -719,22 +825,33 @@ class PlayerStatus {
 	public static boolean alarm_set = false;
 	public static boolean playlistReset;
 	public static boolean endReached = false;
+	public static boolean playerReady = false;
+	public static boolean timerReset = false;
 }
 
 // CurrentData should hold more temporary data than LibraryInfo.
 
 class CurrentData {
 	// Default constructor
-	CurrentData()
 	{
 		currentSong = new Song("Song", "Album", "Artist", "NOPATH");
+		shuffleHistory = new ArrayDeque<Song>();
+		shuffleQueue = new Playlist();
 	}
 
 	public static Song currentSong;
 	public static Playlist currentPlaylist;
 	public static int currentSongIndex;
+	public static Deque<Song> shuffleHistory;
+	public static int shuffleHistoryPosition;
+	public static Playlist shuffleQueue;
 	public static void clearPlaylist(){
 		currentPlaylist = new Playlist();
+	}
+	public static void shuffleReset(){
+		shuffleHistory = new ArrayDeque<Song>();
+		shuffleHistoryPosition = 0;
+		shuffleQueue = new Playlist(currentPlaylist); 
 	}
 }
 

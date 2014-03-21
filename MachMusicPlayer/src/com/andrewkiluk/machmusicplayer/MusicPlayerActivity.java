@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -35,7 +36,6 @@ import android.widget.Toast;
 
 import com.andrewkiluk.machmusicplayer.MusicPlayerService.BoundServiceListener;
 import com.andrewkiluk.machmusicplayer.MusicPlayerService.LocalBinder;
-import com.google.gson.Gson;
 
 
 public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarChangeListener {
@@ -301,31 +301,37 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			@Override
 			public void onClick(View arg0) {
-				if(PlayerStatus.endReached == true){
-					CurrentData.currentSongIndex = 0;
-					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
-					PlayerStatus.endReached = false;
-					if(mBound){
-						mService.playSong();
+				if(!mp.isNull()){
+					if(PlayerStatus.endReached == true){
+						CurrentData.currentSongIndex = 0;
+						CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
+						PlayerStatus.endReached = false;
+						if(mBound){
+							mService.playSong();
+						}
+						updateSongUI(mp.isPlaying());
 					}
-					updateSongUI(mp.isPlaying());
-				}
-				if(CurrentData.currentSong != null){
+
 					// check for already playing
 					if(mp.isPlaying()){
-						if(!mp.isNull()){
-							if(mBound){
-								mService.pausePlayer();
-								//mService.updateNotification(false);
-							}
+						if(mBound){
+							mService.pausePlayer();
 						}
 					}else{
-						// Resume song
-						if(!mp.isNull()){
+						if(PlayerStatus.playerReady){
+							// Resume song
+							Log.d("test", "Ready");
 							mp.start();
 							btnPlay.setImageResource(R.drawable.ic_action_pause);
 							mService.cancelAlarm();
 							mService.updateNotification(true);
+						}
+						else{
+							Log.d("test", "Not ready");
+							mService.playSong();
+							updateSongUI(mp.isPlaying());
+							btnPlay.setImageResource(R.drawable.ic_action_pause);
+							mService.cancelAlarm();
 						}
 					}
 				}
@@ -347,21 +353,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			}
 		});
 
-		//
-		//
-		//
-		//
-		//
-		//
-		//  Should probably create a stack when shuffle is pressed and push songs when completed????
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
 
 		/**
 		 * Back button click event
@@ -399,6 +390,8 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 					repeat_once_text.setTextColor(Color.argb(0,255,255,255));
 					btnRepeat.setBackgroundResource(R.drawable.control_button);
 				}
+				
+				CurrentData.shuffleReset();
 
 				SharedPreferences.Editor editor = sharedPrefs.edit();
 				editor.putString("repeatMode", PlayerOptions.repeatMode);
@@ -417,11 +410,18 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			public void onClick(View arg0) {
 				if(PlayerOptions.isShuffle){
 					PlayerOptions.isShuffle = false;
+					for (int i = 0; i < CurrentData.currentPlaylist.songs.size(); i++){
+						if(CurrentData.currentPlaylist.songs.get(i).equals(CurrentData.currentSong)){
+							CurrentData.currentSongIndex = i;
+						}
+					}
 					makeToast("Shuffle is OFF");
 					btnShuffle.setBackgroundResource(R.drawable.control_button);
 				}else{
 					// Turn on shuffle
 					PlayerOptions.isShuffle = true;
+					CurrentData.shuffleReset();
+					CurrentData.currentSongIndex = 0;
 					makeToast("Shuffle is ON");
 					btnShuffle.setBackgroundResource(R.drawable.control_button_selected);
 				}
@@ -447,25 +447,16 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	}
 
 	@Override
-	protected void onStop() {
-		super.onStop();
-		AppStatus.isVisible = false;
-		// Set an alarm if not playing
-		if (!mp.isPlaying()){
-			if (mBound){
-				mService.setAlarm();
-			}
-		}
-	}
-
-
-	@Override
 	protected void onPause() {
 		super.onPause();
 		AppStatus.isVisible = false;
 
-		// Unbind from the service
 		if (mBound) {
+			if (!mp.isPlaying()){
+				// Set an alarm if not playing
+				mService.setAlarm();
+			}
+			// Unbind from the service
 			unbindService(mConnection);
 			mBound = false;
 		}
@@ -477,6 +468,14 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		AppStatus.isVisible = true;
 
 		updateSongUI(mp.isPlaying());
+
+		if(PlayerStatus.timerReset){
+			currentDuration = 0;
+			songCurrentDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(currentDuration)));			
+			PlayerStatus.timerReset = false;
+		}
+
+
 	}
 
 	/**
@@ -679,11 +678,13 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 					}
 					catch(Exception e){
 						songImage = null;
+						albumArtHandler.post(updateAlbumArt);
 					}
-					
+
 				}
 				else{
 					songImage = null;
+					albumArtHandler.post(updateAlbumArt);
 				}
 
 			}
@@ -707,14 +708,14 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			if(mBound){
 				try{
 
-					if(mp.isReady() && CurrentData.currentSong != null){
+					if(PlayerStatus.playerReady && CurrentData.currentSong != null){
 						totalDuration = mp.getDuration();
 						currentDuration = mp.getCurrentPosition();
 					}
 					else{
 						totalDuration = 0;
 						currentDuration = 0;
-					}
+					}	
 
 					// Displaying Total Duration time
 					songTotalDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(totalDuration)));
@@ -857,17 +858,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				mService.release();	            
 			}
 		}
-
-		public boolean isReady()
-		{
-			if (mBound) {
-				return mService.isReady();	            
-			}
-			else{
-				return false;
-			}
-		}
-
 		public void seekTo(int currentPosition)
 		{
 			if (mBound) {
