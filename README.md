@@ -5,10 +5,20 @@ The music apps I've found for Android have been laggy and / or constantly naggin
 
 This project started from an example at http://www.androidhive.info/.
 
+Version 1.1.1:
+------------
+
+ - Many miscellaneous behavior fixes.
+ - Shuffle now remembers its history.
+ - Repeat now has 3 modes: Off, Repeat playlist, and Repeat song.
+
+ To do: Allow the user to change the order of the songs in the current playlist by dragging. I found a library which should hopefully make this not terrible. I'll also add the song lengths to the playlist view, and maybe also to the playlist builder. This should be the last thing before it hits the Play Store!
+
+
 Version 1.1:
 ------------
 
-I get the UI a much-needed overhaul, and fixed a few weird behaviors that would occur when the player was started with an empty playlist. The current song and position are now stored upon exit, so you don't lose your place.
+I gave the UI a much-needed overhaul, and fixed a few weird behaviors that would occur when the player was started with an empty playlist. The current song and position are now stored upon exit, so you don't lose your place.
 
 Also, the player should now support most screen sizes. I think it's ready for the Play Store after some more testing. Hm, maybe Version 1.0 was a bit premature... but it's in actual working shape right now as far as I can tell.
 
