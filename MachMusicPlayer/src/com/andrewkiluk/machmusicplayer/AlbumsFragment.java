@@ -20,12 +20,10 @@ import android.widget.ListView;
 public class AlbumsFragment extends ListFragment {
 
 	public ArrayList<Album> albumsList;
-	public int artistPosition;
 	public ListView lv;
+	public int artistPosition;
 	int tempAlbumPosition; // This is used to keep track of which album we have a dialogue asking about. 
-//	boolean selectAllSongsInAlbumPosition[];
-	// Since there's no concurrency in this situation, it's okay to have it global, and there's really no other good way to pass it. 
-	public String origin;
+	public String origin;  // Keeps track of what created this fragment
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -33,18 +31,15 @@ public class AlbumsFragment extends ListFragment {
 
 		View rootView = inflater.inflate(R.layout.fragment_list, container, false);
 
-		// "Constructor"
+		// Setup
 		artistPosition = getArguments().getInt("artistPosition");
 		origin = getArguments().getString("origin");
-		if (artistPosition == -1){
+		if (artistPosition == -1){	// Did not come from an artist choice, use all albums
 			albumsList = LibraryInfo.albumsList;
 		}
-		else{
+		else{ // Use albums from the chosen artist
 			albumsList = LibraryInfo.artistsList.get(artistPosition).albums;
 		}
-
-//		selectAllSongsInAlbumPosition = new boolean[LibraryInfo.albumsList.size()];
-
 
 		// looping through playlist
 		ArrayList<String> albumNamesList = new ArrayList<String>();
@@ -85,8 +80,8 @@ public class AlbumsFragment extends ListFragment {
 				else{
 					args.putString("origin", "albums");
 				}
-//				args.putBoolean("SelectAll", selectAllSongsInAlbumPosition[position]);
-//				selectAllSongsInAlbumPosition[position] = false;
+				//				args.putBoolean("SelectAll", selectAllSongsInAlbumPosition[position]);
+				//				selectAllSongsInAlbumPosition[position] = false;
 				newFragment.setArguments(args);
 				FragmentTransaction transaction = getFragmentManager().beginTransaction();
 				transaction.addToBackStack(null);
@@ -96,8 +91,6 @@ public class AlbumsFragment extends ListFragment {
 		});
 
 		lv.setLongClickable(true);
-
-
 
 		lv.setOnItemLongClickListener(new OnItemLongClickListener() {
 
@@ -114,30 +107,29 @@ public class AlbumsFragment extends ListFragment {
 				alertDialog.setPositiveButton("Ok",new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog,int id) {
 						dialog.cancel();
+
+						// Set indexList based on origin
 						ArrayList<Song> indexList;
 						if(origin.equals("artists")){ // If we got here from the artists tab
 							indexList = LibraryInfo.artistsList.get(artistPosition).albums.get(tempAlbumPosition).songs;
-//							selectAllSongsInAlbumPosition[tempAlbumPosition] = true;
-							for(int i=0 ; i<LibraryInfo.artistsList.get(artistPosition).albums.get(tempAlbumPosition).songs.size() ; i++){
-								SelectionStatus.artistsListSelection[artistPosition][tempAlbumPosition][i] = true;
-							}
-							
 						}
 						else if(origin.equals("albums")){ // If we got here from the albums tab
 							indexList = LibraryInfo.albumsList.get(tempAlbumPosition).songs;
-//							selectAllSongsInAlbumPosition[tempAlbumPosition] = true;
-							for(int i=0 ; i<LibraryInfo.albumsList.get(tempAlbumPosition).songs.size() ; i++){
-								SelectionStatus.albumsListSelection[tempAlbumPosition][i] = true;
-							}
 						}
-						else{
+						else{ // This should never occur, but it makes the compiler happy 
 							indexList = new ArrayList<Song>();
 						}
-						
+
+						// Set selections to true for UI purposes
+						for(int i=0 ; i<LibraryInfo.albumsList.get(tempAlbumPosition).songs.size() ; i++){
+							SelectionStatus.albumsListSelection[tempAlbumPosition][i] = true;
+						}
+
+						// Now we make sure that all songs in the album are in the newSongs queue
 						for (Song newSong : indexList){
 							ArrayList<Song>localNewSongs = new ArrayList<Song> (LibraryInfo.newSongs);
 
-							// We first remove any songs currently selected from the newSongs queue. If we want songs our songs in this album to be unselectable
+							// We first remove any songs currently selected from the newSongs queue. If we want songs our songs in this album to be de-selectable
 							// and just generally behave like the rest of the songs in this activity, we need to do this first.
 							if(localNewSongs.contains(newSong)){
 								for(Song song : localNewSongs){

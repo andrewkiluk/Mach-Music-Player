@@ -9,7 +9,7 @@ public class SettingsActivity extends PreferenceActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		AppStatus.isVisible = true;
+		PlayerStatus.isVisible = true;
 		getFragmentManager().beginTransaction().replace(android.R.id.content,
 				new SettingsFragment()).commit();
 
@@ -17,7 +17,7 @@ public class SettingsActivity extends PreferenceActivity {
 
 	@Override
 	protected void onStop() {
-		AppStatus.isVisible = false;
+		PlayerStatus.isVisible = false;
 		super.onStop();
 	}
 

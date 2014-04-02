@@ -43,13 +43,13 @@ public class SongsFragment extends ListFragment {
 
 
 
-		ObjectItem[] ObjectItemData = new ObjectItem[songsList.size()];
+		ListItemData[] ObjectItemData = new ListItemData[songsList.size()];
 
 		// looping through playlist
 		int i=0;
 		if (LibraryInfo.isInitialized){
 			for (Song song : songsList) {
-				ObjectItemData[i] = new ObjectItem(i, song.title(), song);
+				ObjectItemData[i] = new ListItemData(i, song.title(), song);
 				i++;
 			}
 

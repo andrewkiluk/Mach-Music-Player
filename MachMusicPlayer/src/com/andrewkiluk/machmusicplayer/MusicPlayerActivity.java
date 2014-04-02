@@ -125,7 +125,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		} 
 		setContentView(R.layout.player);
 
-		AppStatus.isVisible = true;
+		PlayerStatus.isVisible = true;
 
 		// Start the background service controlling the MediaPlayer object
 		Intent i = new Intent(getApplicationContext(), MusicPlayerService.class);
@@ -292,18 +292,23 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 
 		/**
-		 * Play button click event
-		 * plays a song and changes button to pause image
-		 * pauses a song and changes button to play image
+		 * Play button click event.
+		 * Toggles play state and updates the graphic on the play / pause button.
 		 * */
 		btnPlay.setOnClickListener(new View.OnClickListener() {
 
 
 			@Override
 			public void onClick(View arg0) {
+				if(CurrentData.currentSong == null && CurrentData.currentPlaylist.songs.isEmpty()){
+					return;
+				}
 				if(!mp.isNull()){
 					if(PlayerStatus.endReached == true){
+						// We've reached the end of a playlist, and repeat is off.
+						// Start playing again from the beginning.
 						CurrentData.currentSongIndex = 0;
+						CurrentData.currentPlaylistPosition = 0;
 						CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
 						PlayerStatus.endReached = false;
 						if(mBound){
@@ -327,9 +332,9 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 							mService.updateNotification(true);
 						}
 						else{
-							Log.d("test", "Not ready");
+							// Player is not in the prepared state, so we need to load a song and play it. 
 							mService.playSong();
-							updateSongUI(mp.isPlaying());
+							updateSongUI(true);
 							btnPlay.setImageResource(R.drawable.ic_action_pause);
 							mService.cancelAlarm();
 						}
@@ -341,7 +346,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 
 		/**
-		 * Next button click event
+		 * Next button click event.
 		 * */
 		btnNext.setOnClickListener(new View.OnClickListener() {
 
@@ -355,7 +360,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 
 		/**
-		 * Back button click event
+		 * Back button click event.
 		 * */
 		btnPrevious.setOnClickListener(new View.OnClickListener() {
 
@@ -368,8 +373,8 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		});
 
 		/**
-		 * Button Click event for Repeat button
-		 * Enables repeat flag to true
+		 * Button Click event for Repeat button.
+		 * Moves through the Repeat options.
 		 * */
 		btnRepeat.setOnClickListener(new View.OnClickListener() {
 
@@ -390,7 +395,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 					repeat_once_text.setTextColor(Color.argb(0,255,255,255));
 					btnRepeat.setBackgroundResource(R.drawable.control_button);
 				}
-				
+
 				CurrentData.shuffleReset();
 
 				SharedPreferences.Editor editor = sharedPrefs.edit();
@@ -401,8 +406,8 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		});
 
 		/**
-		 * Button Click event for Shuffle button
-		 * Enables shuffle flag to true
+		 * Button Click event for Shuffle button.
+		 * Toggles shuffle flag.
 		 * */
 		btnShuffle.setOnClickListener(new View.OnClickListener() {
 
@@ -413,6 +418,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 					for (int i = 0; i < CurrentData.currentPlaylist.songs.size(); i++){
 						if(CurrentData.currentPlaylist.songs.get(i).equals(CurrentData.currentSong)){
 							CurrentData.currentSongIndex = i;
+							CurrentData.currentPlaylistPosition = i;
 						}
 					}
 					makeToast("Shuffle is OFF");
@@ -432,8 +438,8 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		});
 
 		/**
-		 * Button Click event for Play list click event
-		 * Launches list activity which displays list of songs
+		 * Button Click event for Play list button.
+		 * Launches PlayListActivity.
 		 * */
 		btnPlaylist.setOnClickListener(new View.OnClickListener() {
 
@@ -446,10 +452,16 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 	}
 
+	// 
+	/**
+	 * Called when this activity is put in the background.
+	 * Sets an alarm for the service to be removed from the foreground if it's not playing anything,
+	 * then unbinds from the service.
+	 * */
 	@Override
-	protected void onPause() {
+	protected void onPause() { 
 		super.onPause();
-		AppStatus.isVisible = false;
+		PlayerStatus.isVisible = false;
 
 		if (mBound) {
 			if (!mp.isPlaying()){
@@ -462,18 +474,20 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		}
 	}
 
+	/**
+	 * Called when this activity returns from the background.
+	 * */
 	@Override
 	protected void onResume() {
 		super.onResume();
-		AppStatus.isVisible = true;
+		PlayerStatus.isVisible = true;
 
-		updateSongUI(mp.isPlaying());
 
-		if(PlayerStatus.timerReset){
-			currentDuration = 0;
-			songCurrentDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(currentDuration)));			
-			PlayerStatus.timerReset = false;
-		}
+		//		if(PlayerStatus.timerReset){
+		//			currentDuration = 0;
+		//			songCurrentDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(currentDuration)));			
+		//			PlayerStatus.timerReset = false;
+		//		}
 
 
 	}
@@ -514,19 +528,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 
 			// Okay, now we can do the setup stuff that requires the MediaPlayer class to exist.
-
-			if(firstBind){
-				mp.reset();
-				if(CurrentData.currentSong != null){
-					mp.setDataSource(CurrentData.currentSong.songData.get("songPath"));
-					mp.prepare();
-					int oldTimer = mService.getOldTimer();
-					mp.seekTo(oldTimer);
-
-					mService.createNotification(false);	
-				}
-				firstBind = false;
-			}
 
 			updateSongUI(mp.isPlaying());
 
@@ -576,19 +577,18 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	}
 
 	/**
-	 * Receiving song index from playlist view
-	 * and play the song
+	 * Receive an intent from PlayListActivity.
+	 * PlayListActivity has changed CurrentData.currentSong to something new, so have the service play that.
 	 * */
 	@Override
 	protected void onActivityResult(int requestCode,
 			int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if(resultCode == 100){
-			// update UI for new song
-			updateSongUI(true);
 			// Play selected song.
 			mService.playSong();
-
+			// update UI for new song
+			updateSongUI(true);
 		}
 
 	}
@@ -597,8 +597,11 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 
 	/**
-	 * Function to play a song
-	 * @param songIndex - index of song
+	 * Function to play a song.
+	 * The parameter isPlaying indicates whether a song is playing, and the function sets the play / pause button appropriately.
+	 * We explicitly pass the player status rather than just calling mp.isPlaying() since the state in the MediaPlayer object
+	 * is updated asynchronously, and mp.isPlaying() may not return the correct value without synchronization mechanisms.
+	 * Since we're dealing with the UI thread, waiting for synchronization is not a good option.
 	 * */
 	public void updateSongUI(boolean isPlaying){
 		// Play song
@@ -644,7 +647,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 	}
 
-	//	updateAlbumArt
+	//	Asynchronously update album art
 
 	// Need handler for callbacks to the UI thread
 	final Handler albumArtHandler = new Handler();
@@ -694,52 +697,66 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 
 	/**
-	 * Update timer on seekbar
+	 * Update timer on seekbar.
 	 * */
 	public void updateProgressBar() {
 		mHandler.postDelayed(mUpdateTimeTask, 100);
 	}   
 
 	/**
-	 * Background Runnable thread
+	 * Thread for updating the time display.
 	 * */
 	private Runnable mUpdateTimeTask = new Runnable() {
 		public void run() {
 			if(mBound){
-				try{
+				// First, if there is no current song, we set both labels to be blank.
+				if(CurrentData.currentSong == null){
+					songTotalDurationLabel.setText("");
+					songCurrentDurationLabel.setText("");
 
-					if(PlayerStatus.playerReady && CurrentData.currentSong != null){
-						totalDuration = mp.getDuration();
-						currentDuration = mp.getCurrentPosition();
-					}
-					else{
-						totalDuration = 0;
-						currentDuration = 0;
-					}	
-
-					// Displaying Total Duration time
-					songTotalDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(totalDuration)));
-					// Displaying time completed playing
-
-					if(currentDuration < totalDuration || CurrentData.currentSong == null){
-						songCurrentDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(currentDuration)));
-					}
-
-					// Updating progress bar
-					int progress = (int)(utils.getProgressPercentage(currentDuration, totalDuration));
-					//Log.d("Progress", ""+progress);
-					songProgressBar.setProgress(progress);
-
-					// Running this thread after 100 milliseconds
-					//				if (!stopTracking){
-					mHandler.postDelayed(this, 100);
-					//				}
-
-				}catch(NullPointerException e){
-
-				}catch(IllegalStateException e){
-
+					return;
 				}
+				// Next we find the total duration.
+				if(!CurrentData.currentSong.songData.get("Duration").equals("error")){
+					totalDuration = Integer.parseInt(CurrentData.currentSong.songData.get("Duration"));
+				}
+				else{
+					totalDuration = 0;
+				}
+				// If we've just changed the song, we need to move the timer back to 0
+				if(PlayerStatus.timerReset){
+
+					currentDuration = 0;
+					PlayerStatus.timerReset = false;
+				}
+				// This is the main case
+				else if(PlayerStatus.playerReady && CurrentData.currentSong != null){
+					try{
+						currentDuration = mp.getCurrentPosition();
+					}catch(NullPointerException e){
+
+					}catch(IllegalStateException e){
+
+					}
+				}
+				else{
+					currentDuration = 0;
+				}	
+
+				// Displaying Total Duration time
+				songTotalDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(totalDuration)));
+				// Displaying time completed playing
+
+				if(currentDuration < totalDuration || CurrentData.currentSong == null){
+					songCurrentDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(currentDuration)));
+				}
+
+				// Update progress bar
+				int progress = (int)(utils.getProgressPercentage(currentDuration, totalDuration));
+				songProgressBar.setProgress(progress);
+
+				// Re-run this thread after 100 milliseconds
+				mHandler.postDelayed(this, 100);
 			}
 		}
 	};
@@ -749,7 +766,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	 * */
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromTouch) {
-
 	}
 
 	/**
@@ -795,12 +811,12 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 	}
 
-
+	/**
+	 * This class acts as a mediator between all of the front-end stuff in this activity with all the back-end stuff going on in MusicPlayerService.
+	 * It just mimics the API for MediaPlayer and sends the corresponding actions to the actual MediaPlayer object in the service.
+	 * */
 	class mp3Player
 	{
-
-		// This class acts as a mediator between all of the front-end stuff in this activity with all the back-end stuff going on in MusicPlayerService.
-		// It just mimics the API for MediaPlayer and sends the corresponding actions to the actual MediaPlayer object in the service.
 
 		public boolean isNull() {
 			if (mBound) {
@@ -882,27 +898,5 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				return 0;
 			}
 		}
-
-
-
 	}
-
-
 }
-
-class AppStatus {
-	public static boolean isVisible;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-

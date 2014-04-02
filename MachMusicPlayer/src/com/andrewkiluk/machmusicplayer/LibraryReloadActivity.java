@@ -42,7 +42,7 @@ public class LibraryReloadActivity extends Activity {
 
 
 	/**
-	 * Async Task to make http call
+	 * Reload and rebuild library of songs
 	 */
 	private class ReloadLibrary extends AsyncTask<Void, Void, Void> {
 

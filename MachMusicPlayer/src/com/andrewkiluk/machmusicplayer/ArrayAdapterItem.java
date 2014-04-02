@@ -10,14 +10,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 // here's our beautiful adapter
-public class ArrayAdapterItem extends ArrayAdapter<ObjectItem> {
+public class ArrayAdapterItem extends ArrayAdapter<ListItemData> {
 
 	Context mContext;
 	int layoutResourceId;
-	ObjectItem data[] = null;
+	ListItemData data[] = null;
 	boolean selectedStatus[];
 
-	public ArrayAdapterItem(Context mContext, int layoutResourceId, ObjectItem[] data) {
+	public ArrayAdapterItem(Context mContext, int layoutResourceId, ListItemData[] data) {
 
 		super(mContext, layoutResourceId, data);
 
@@ -66,7 +66,7 @@ public class ArrayAdapterItem extends ArrayAdapter<ObjectItem> {
 		}
 
 		// object item based on the position
-		ObjectItem objectItem = data[position];
+		ListItemData objectItem = data[position];
 
 		// assign values if the object is not null
 		if(objectItem != null) {

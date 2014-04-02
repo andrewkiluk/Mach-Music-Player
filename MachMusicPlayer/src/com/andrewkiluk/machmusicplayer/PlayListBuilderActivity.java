@@ -36,7 +36,7 @@ ActionBar.TabListener{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.playlist_builder);
 
-		AppStatus.isVisible = true;
+		PlayerStatus.isVisible = true;
 
 		ActionBar bar = getActionBar();
 		bar.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.tabcolor)));
@@ -150,7 +150,7 @@ ActionBar.TabListener{
 
 	@Override
 	protected void onStop() {
-		AppStatus.isVisible = false;
+		PlayerStatus.isVisible = false;
 		super.onStop();
 	}
 

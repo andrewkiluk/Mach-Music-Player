@@ -26,6 +26,7 @@ public class PlaylistFragment extends ListFragment {
 	public interface TouchListener {
 		public void songPicked(int songIndex);
 		public void playerReset();
+		public void getNextSong();
 	}
 
 	int currentSongPosition;
@@ -102,28 +103,29 @@ public class PlaylistFragment extends ListFragment {
 						dialog.cancel();
 
 						// Remove song
-						Song oldSong = CurrentData.currentPlaylist.songs.get(currentSongPosition);
-						Playlist localPlaylist = new Playlist (CurrentData.currentPlaylist);
-						for(Song song : localPlaylist.songs){
-							if(song.title().equals(oldSong.title() ) && song.artist().equals(oldSong.artist() ) && song.album().equals(oldSong.album() )){
-								CurrentData.currentPlaylist.songs.remove(localPlaylist.songs.indexOf(song));
-								if(CurrentData.currentSong.title().equals(oldSong.title() ) && CurrentData.currentSong.artist().equals(oldSong.artist() ) 
-										&& CurrentData.currentSong.album().equals(oldSong.album() )){
-									CurrentData.currentSong = null;
-									PlayerStatus.playerReady = false;
-									onSongPickedListener.playerReset();
-								}
-							}
+						if(CurrentData.currentPlaylistPosition == currentSongPosition){ 
+
+							onSongPickedListener.getNextSong();
+							PlayerStatus.playerReady = false;
+							onSongPickedListener.playerReset();
 						}
-						
+						if (CurrentData.currentPlaylistPosition >= currentSongPosition){
+
+							// Decrement the position tracking variables to correct for the change in playlist size
+							CurrentData.currentPlaylistPosition = CurrentData.currentPlaylistPosition - 1;
+							CurrentData.currentSongIndex = CurrentData.currentSongIndex - 1;
+							
+						}
+						CurrentData.currentPlaylist.songs.remove(currentSongPosition);
+
 						// Playlist has been modified, reset the shuffle queue
 						CurrentData.shuffleReset();
-						
+
 						// Update UI
 						final FragmentTransaction ft = getFragmentManager().beginTransaction(); 
-			            PlaylistFragment refresh = new PlaylistFragment();
-			            ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.androsmusicplayer.PlaylistFragment"); 
-			            ft.commit(); 
+						PlaylistFragment refresh = new PlaylistFragment();
+						ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.androsmusicplayer.PlaylistFragment"); 
+						ft.commit(); 
 
 					}
 				});

@@ -22,122 +22,95 @@ public class LoadingScreenActivity extends Activity {
 	private SharedPreferences sharedPrefs;
 	private String oldsongsListJson;
 
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-
 		super.onCreate(savedInstanceState);
 
-
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		
 		CurrentData init = new CurrentData(); // Used to initialize static fields in CurrentData
-		
-		// Load old shuffle status
-		String shuffleHistory = sharedPrefs.getString("shuffleHistory", "NULL");
-		Type dequeType = new TypeToken<ArrayDeque<Song>>() {}.getType();
-		Gson gson = new Gson();
-		if(!shuffleHistory.equals("NULL") ){
-			CurrentData.shuffleHistory = gson.fromJson(shuffleHistory, dequeType);
+
+		// Load old songsList
+		oldsongsListJson = sharedPrefs.getString("songsList", "null");
+		if (!oldsongsListJson.equals("null")){
+			loadOldSettings();
 		}
-		String shuffleQueue = sharedPrefs.getString("shuffleQueue", "NULL");
-		if(!shuffleQueue.equals("NULL") ){
-			CurrentData.shuffleQueue = gson.fromJson(shuffleQueue, Playlist.class);
+		else{
+			setContentView(R.layout.loading_screen);
+			new LoadLibrary().execute();
+		}
+	}
+
+	private void loadOldSettings(){
+		// Parse oldsongsListJson and do all of the library setup.
+		Gson gson = new Gson();
+		Type listType = new TypeToken<ArrayList<Song>>() {}.getType();
+		LibraryFiller libFill = new LibraryFiller(getApplicationContext());
+		LibraryInfo initializer = new LibraryInfo();
+		LibraryInfo.songsList = gson.fromJson(oldsongsListJson, listType);
+		libFill.buildLibraryFromSongsList();
+		Log.d("Library", "Old library Loaded");
+
+		// Check if there is a stored current song; if so, load it.
+		String oldSongJson = sharedPrefs.getString("currentSong", "null");
+		if(!oldSongJson.equals("null")){
+			CurrentData.currentSong = gson.fromJson(oldSongJson, Song.class);
+		}
+		else{
+			CurrentData.currentSong = null;
+		}
+
+		// Load old song index
+		CurrentData.currentSongIndex = sharedPrefs.getInt("currentSongIndex", 0);
+
+		// Load old playlist position
+		CurrentData.currentPlaylistPosition = sharedPrefs.getInt("currentPlaylistPosition", 0);
+
+		// Check if there is a stored playlist; if so, load it, else initialize a new one.
+		String oldPlaylistJson = sharedPrefs.getString("currentPlaylist", "null");
+
+		if (!oldPlaylistJson.equals("null")){
+			CurrentData.currentPlaylist = gson.fromJson(oldPlaylistJson, Playlist.class);
+			Log.d("Library", "Old playlist Loaded:" + oldPlaylistJson);
+		}
+		else{
+			CurrentData.currentPlaylist = new Playlist();
+		}
+
+		// Load the list of stored playlists
+		String oldPlaylistsJson = sharedPrefs.getString("playlists", "null");
+
+		if (!oldPlaylistsJson.equals("null")){
+			Type playlistType = new TypeToken<ArrayList<Playlist>>() {}.getType();
+			LibraryInfo.playlists = gson.fromJson(oldPlaylistsJson, playlistType);
+		}
+		else{
+			LibraryInfo.playlists = new ArrayList<Playlist>();
+		}
+
+		// Load old shuffle status
+		String shuffleHistory = sharedPrefs.getString("shuffleHistory", "null");
+		Type intArrayType = new TypeToken<ArrayList<Integer>>() {}.getType();
+		gson = new Gson();
+		if(!shuffleHistory.equals("null") ){
+			CurrentData.shuffleHistory = gson.fromJson(shuffleHistory, intArrayType);
+		}
+		String shuffleQueue = sharedPrefs.getString("shuffleQueue", "null");
+		if(!shuffleQueue.equals("null") ){
+			Type arrayType = new TypeToken<int[]>() {}.getType();
+			CurrentData.shuffleQueue = gson.fromJson(shuffleQueue, arrayType);
 		}
 		CurrentData.shuffleHistoryPosition = sharedPrefs.getInt("shuffleHistoryPosition", 0);
 
-		// Load old songsList
-		oldsongsListJson = sharedPrefs.getString("songsList", "NULL");
-		if (oldsongsListJson != "NULL"){
-
-			gson = new Gson();
-			Type listType = new TypeToken<ArrayList<Song>>() {}.getType();
-			LibraryFiller libFill = new LibraryFiller(getApplicationContext());
-			LibraryInfo initializer = new LibraryInfo();
-			LibraryInfo.songsList = gson.fromJson(oldsongsListJson, listType);
-			libFill.buildLibraryFromSongsList();
-			Log.d("Library", "Old library Loaded");
-
-			// Check if there is a stored playlist; if so, load it, else initialize a new one.
-			String oldPlaylistJson = sharedPrefs.getString("currentPlaylist", "NULL");
-			String oldSongJson = sharedPrefs.getString("currentSong", "NULL");
-			Log.d("test", oldSongJson);
-
-			CurrentData.currentSong = null;
-
-			if (oldPlaylistJson != "NULL"){
-				CurrentData.currentPlaylist = gson.fromJson(oldPlaylistJson, Playlist.class);
-				if(oldSongJson != "NULL"){
-					CurrentData.currentSong = gson.fromJson(oldSongJson, Song.class);
-				}
-				try{
-					if(CurrentData.currentPlaylist.songs.size() == 0){
-						PlayerStatus.playlistReset = true;
-						CurrentData.currentSong = null;
-					}
-				}catch(NullPointerException e){
-					CurrentData.currentPlaylist = new Playlist();
-					PlayerStatus.playlistReset = true;
-					CurrentData.currentSong = null;
-				}
-			}
-			else{
-				CurrentData.currentPlaylist = new Playlist();
-				PlayerStatus.playlistReset = true;
-				CurrentData.currentSong = null;
-			}
-
-			// test to make sure it's a valid playlist, else initialize to an empty one
-			try{
-				CurrentData.currentPlaylist.songs.get(0);
-			}
-			catch(Exception e){
-				CurrentData.currentPlaylist = new Playlist();
-				PlayerStatus.playlistReset = true;
-				CurrentData.currentSong = null;
-			}
-
-			// Load the list of stored playlists
-
-			String oldPlaylistsJson = sharedPrefs.getString("playlists", "NULL");
-
-			if (oldPlaylistsJson != "NULL"){
-				Type playlistType = new TypeToken<ArrayList<Playlist>>() {}.getType();
-				LibraryInfo.playlists = gson.fromJson(oldPlaylistsJson, playlistType);
-			}
-			else{
-				LibraryInfo.playlists = new ArrayList<Playlist>();
-			}
-			try{
-				LibraryInfo.playlists.isEmpty(); // This is to test whether we have a valid list of playlists
-			}catch(Exception e){
-				LibraryInfo.playlists = new ArrayList<Playlist>();
-			}
-
-			Intent i = new Intent(LoadingScreenActivity.this, MusicPlayerActivity.class);
-			startActivity(i);
-			finish();
-
-
-		}
-		else{
-
-			setContentView(R.layout.loading_screen);
-			new PrefetchData().execute();
-
-		}
-
-
-
-
-
+		Intent i = new Intent(LoadingScreenActivity.this, MusicPlayerActivity.class);
+		startActivity(i);
+		finish();
 
 	}
 
 	/**
-	 * Async Task to make http call
+	 * Task which scans the SD card for music files and fills in the LibraryInfo class.  
 	 */
-	private class PrefetchData extends AsyncTask<Void, Void, Void> {
+	private class LoadLibrary extends AsyncTask<Void, Void, Void> {
 
 		@Override
 		protected void onPreExecute() {
@@ -148,11 +121,6 @@ public class LoadingScreenActivity extends Activity {
 
 		@Override
 		protected Void doInBackground(Void... arg0) {
-
-			// Load the last saved state.
-
-
-			//		 Check for a previous songsList, else create one
 
 			Log.d("Library", "No Library Loaded");
 			LibraryFiller libFillAll = new LibraryFiller(getApplicationContext());
@@ -165,7 +133,7 @@ public class LoadingScreenActivity extends Activity {
 
 			// Look up the directory to search for music from the preferences activity
 			//		Log.d("Library", "No Library Loaded");
-			//		String library_location = sharedPrefs.getString("library_location", "NULL");
+			//		String library_location = sharedPrefs.getString("library_location", "null");
 			//		LibraryFiller libFill = new LibraryFiller(library_location);
 			//		if(libFill.loadLibrary() == -1){
 			//			Toast.makeText(getApplicationContext(), "Invalid Library folder, could not load music.",
@@ -173,9 +141,9 @@ public class LoadingScreenActivity extends Activity {
 			//		}
 
 			// Check if there is a stored playlist; if so, load it, else initialize a new one.
-			String oldPlaylistJson = sharedPrefs.getString("currentPlaylist", "NULL");
+			String oldPlaylistJson = sharedPrefs.getString("currentPlaylist", "null");
 
-			if (oldPlaylistJson != "NULL"){
+			if (!oldPlaylistJson.equals("null")){
 				CurrentData.currentPlaylist = gson.fromJson(oldPlaylistJson, Playlist.class);
 				Log.d("Library", "Playlist Loaded");
 			}

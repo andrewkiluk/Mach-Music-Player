@@ -1,8 +1,5 @@
 package com.andrewkiluk.machmusicplayer;
 
-import com.andrewkiluk.machmusicplayer.MusicPlayerService.LocalBinder;
-import com.google.gson.Gson;
-
 import android.app.ActionBar;
 import android.content.ComponentName;
 import android.content.Context;
@@ -16,11 +13,15 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+
+import com.andrewkiluk.machmusicplayer.MusicPlayerService.LocalBinder;
+import com.google.gson.Gson;
 
 
 
@@ -38,10 +39,16 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 	public int pxToDp(int px){
 		return (int) (px / getResources().getDisplayMetrics().density);
 	}
-	
+
 	public void playerReset(){
 		if(mBound){
 			mService.reset();
+		}
+	}
+
+	public void getNextSong(){
+		if(mBound){
+			mService.getNextSong();
 		}
 	}
 
@@ -56,11 +63,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 		fragmentTransaction.add(R.id.playlist_container, playlistfragment);
 		fragmentTransaction.commit();
 
-		AppStatus.isVisible = true;
-
-		// Start the background service controlling the MediaPlayer object
-		Intent i = new Intent(getApplicationContext(), MusicPlayerService.class);
-		bindService(i, mConnection, Context.BIND_AUTO_CREATE);
+		PlayerStatus.isVisible = true;
 
 		button_add_songs = (Button) findViewById(R.id.button_add_songs);
 		button_clear_playlist = (Button) findViewById(R.id.button_clear_playlist);
@@ -79,7 +82,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 		bar.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.tabcolor)));
 
 		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		library_location = sharedPrefs.getString("library_location", "NULL");
+		library_location = sharedPrefs.getString("library_location", "null");
 
 
 		button_add_songs.setOnClickListener(new View.OnClickListener() {
@@ -104,7 +107,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 				}
 				// Playlist has been modified, reset the shuffle queue
 				CurrentData.shuffleReset();
-				
+
 				final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
 				PlaylistFragment refresh = new PlaylistFragment();
 				ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
@@ -129,7 +132,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 	@Override
 	protected void onPause() {
 		super.onPause();
-		AppStatus.isVisible = false;
+		PlayerStatus.isVisible = false;
 
 		// Save the new player state in Shared Prefs:
 		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -140,6 +143,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 		editor.putString("currentSong", songJson);
 		editor.putString("currentPlaylist", playlistJson);
 		editor.putInt("currentSongIndex", CurrentData.currentSongIndex);
+		editor.putInt("currentPlaylistPosition", CurrentData.currentPlaylistPosition);
 		editor.commit();
 
 		// Unbind from the service
@@ -147,6 +151,16 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 			unbindService(mConnection);
 			mBound = false;
 		}
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		PlayerStatus.isVisible = true;
+
+		// Bind to the background service controlling the MediaPlayer object
+		Intent i = new Intent(getApplicationContext(), MusicPlayerService.class);
+		bindService(i, mConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	private ServiceConnection mConnection = new ServiceConnection() {
@@ -196,15 +210,21 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 	@Override
 	public void songPicked(int songIndex) {
 		// Starting new intent
-		Intent in = new Intent(getApplicationContext(),
-				MusicPlayerActivity.class);
+		Intent in = new Intent(getApplicationContext(),	MusicPlayerActivity.class);
+
 		// Sending songIndex to PlayerActivity
 		in.putExtra("songIndex", songIndex);
-		CurrentData.currentSongIndex = songIndex;
+		if (PlayerOptions.isShuffle){
+			// The shuffle scheme is interrupted here, so reset the history and queue.
+			CurrentData.shuffleReset();
+			CurrentData.currentSongIndex = 0;
+		}
+		else{
+			CurrentData.currentSongIndex = songIndex;
+		}
+		CurrentData.currentPlaylistPosition = songIndex;
 		CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(songIndex);
-		
-		// The shuffle scheme is interrupted here, so just reset it.
-		CurrentData.shuffleReset();
+
 
 
 		setResult(100, in);
@@ -215,7 +235,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 
 	@Override
 	protected void onStop() {
-		AppStatus.isVisible = false;
+		PlayerStatus.isVisible = false;
 		super.onStop();
 	}
 
@@ -223,48 +243,36 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 	protected void onActivityResult(int requestCode,
 			int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
+
 		if(resultCode == 200){ // New playlist loaded
 
-			// Update UI
-			final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
-			PlaylistFragment refresh = new PlaylistFragment();
-			ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
-			ft.commit(); 
-			
 			// Clear the old song data and load the first song of the new playlist
 			CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
 			CurrentData.currentSongIndex = 0;
+			CurrentData.currentPlaylistPosition = 0;
 			mService.loadCurrentSong();
-//			mService.reset();
-
-			// Store the current playlist in system settings.
-			Gson gson = new Gson();
-			String currentPlaylistJson = gson.toJson(CurrentData.currentPlaylist);
-
-			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-			SharedPreferences.Editor editor = sharedPrefs.edit();
-			editor.putString("currentPlaylist", currentPlaylistJson);
-			editor.commit();
 
 		}
 		if(resultCode == 300){ // New songs added
 
-			// Update UI
-			final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
-			PlaylistFragment refresh = new PlaylistFragment();
-			ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
-			ft.commit(); 
-			
-			// Store the current playlist in system settings.
-			Gson gson = new Gson();
-			String currentPlaylistJson = gson.toJson(CurrentData.currentPlaylist);
-
-			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-			SharedPreferences.Editor editor = sharedPrefs.edit();
-			editor.putString("currentPlaylist", currentPlaylistJson);
-			editor.commit();
-
 		}
+
+		// We do the following actions in either case:
+
+		// Update UI
+		final FragmentTransaction ft = getSupportFragmentManager().beginTransaction(); 
+		PlaylistFragment refresh = new PlaylistFragment();
+		ft.replace(R.id.playlist_container, refresh, "com.andrewkiluk.machmusicplayer.PlaylistFragment"); 
+		ft.commit(); 
+
+		// Store the current playlist in system settings.
+		Gson gson = new Gson();
+		String currentPlaylistJson = gson.toJson(CurrentData.currentPlaylist);
+
+		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+		SharedPreferences.Editor editor = sharedPrefs.edit();
+		editor.putString("currentPlaylist", currentPlaylistJson);
+		editor.commit();
 
 	}
 }

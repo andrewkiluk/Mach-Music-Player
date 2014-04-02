@@ -54,7 +54,7 @@ public class PlayListManagerActivity extends FragmentActivity implements Playlis
 		fragmentTransaction.add(R.id.playlists_container, playlistfragment);
 		fragmentTransaction.commit();
 
-		AppStatus.isVisible = true;
+		PlayerStatus.isVisible = true;
 
 		button_save_playlist = (Button) findViewById(R.id.button_save_playlist);
 
@@ -172,7 +172,7 @@ public class PlayListManagerActivity extends FragmentActivity implements Playlis
 
 	@Override
 	protected void onStop() {
-		AppStatus.isVisible = false;
+		PlayerStatus.isVisible = false;
 
 		// Store the current list of playlists in system settings.
 		Gson gson = new Gson();

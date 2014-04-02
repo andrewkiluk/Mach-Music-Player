@@ -1,14 +1,13 @@
 package com.andrewkiluk.machmusicplayer;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
 
 import android.app.AlarmManager;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -36,53 +35,45 @@ import com.google.gson.Gson;
 
 public class MusicPlayerService extends Service implements OnCompletionListener, MediaPlayer.OnPreparedListener, AudioManager.OnAudioFocusChangeListener {
 
+	// The MediaPlayer class
 	MediaPlayer mp = null;
+
+	// Keep track of current song and artist
 	private String currentSongTitle;
 	private String currentSongArtist;
-	private NotificationManager mNotificationManager;
+
+	// For checking and storing preferences
+	private SharedPreferences sharedPrefs;
+	int NOTIFICATION_HIDE_MINUTES;
+	int oldTimer;
+
+	// For dealing with audio focus handling
+	public AudioManager audioManager;
+	private boolean hasAudioFocus = true;
+	private boolean shouldResume = false;
+
+	// For pausing when headphones are unplugged
+	private BroadcastReceiver headphoneReceiver;
+
+	// For system notifications
 	private NotificationCompat.Builder notificationBuilder;
 	private BroadcastReceiver notificationBroadcastReceiver;
 
-
-	private SharedPreferences sharedPrefs;
-
-	// This stores the old playback location if the audio focus is lost.
-	// It has to be a class because integers in Java are fucking stupid.
-	class PositionTracker{
-		private int pos;
-		int get()
-		{
-			return pos; 
-		}
-		void set(int rhs){
-			pos = rhs;
-		}
-	}
-	PositionTracker oldPosition = new PositionTracker();
-
-	private PlayerOptions po;
-
-	public BoundServiceListener mListener;
-
-	public AudioManager audioManager;
-	private boolean hasAudioFocus = true;
-
-	private BroadcastReceiver headphoneReceiver;
-
+	// For album art in the system notification
 	byte[] art;
 	Bitmap songImage;
 	Bitmap albumThumb;
 	private int largeIconHeight;
 	private int largeIconWidth;
-	int NOTIFICATION_HIDE_MINUTES;
-	int oldTimer;
 
+	// These PendingIntents are used to take actions from the system notification 
 	PendingIntent piPlay;
 	PendingIntent piPause;
 	PendingIntent piNext;
 	PendingIntent piPrevious;
 	PendingIntent clickNotificationIntent;
 
+	// This interface allows this service to give instructions to MusicPlayerActivity when it is bound
 	public interface BoundServiceListener {
 		public void changeUIforSong(boolean isPlaying);
 		public void SetPlayButtonStatus(String status);
@@ -90,6 +81,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 	// Binder for interaction
 	private final IBinder mBinder = new LocalBinder();
+
+	public BoundServiceListener mListener;
 
 	public class LocalBinder extends Binder {
 		public MusicPlayerService getService() {
@@ -110,16 +103,16 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	@Override
 	public void onCreate(){
 
+		// Create the MediaPlayer
 		mp = new MediaPlayer();
 		mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-		po = new PlayerOptions();
-		mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+		// Run various setup functions
 		initializeNotificationBroadcastReceiver();
 		AlarmSetup();
 		HeadphoneUnplugListenerSetup();
 
 		// Check the dimensions of notification icons.
-
 		Context mContext = getApplicationContext();
 		Resources res = mContext.getResources();
 		largeIconHeight = (int) res.getDimension(android.R.dimen.notification_large_icon_height);
@@ -138,18 +131,39 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		// Load settings
 		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		oldTimer = sharedPrefs.getInt("currentTimer", 0);
-		String sleep = sharedPrefs.getString("serviceSleepDelay", "NULL");
-		if(!sleep.equals("NULL")){
-			NOTIFICATION_HIDE_MINUTES = Integer.parseInt(sleep);
+		String sleep = sharedPrefs.getString("serviceSleepDelay", "null");
+		if(!sleep.equals("null")){
+			try{
+				NOTIFICATION_HIDE_MINUTES = Integer.parseInt(sleep);
+			}catch(NumberFormatException e){
+				NOTIFICATION_HIDE_MINUTES = 5;
+			}
 		}
 		else{
 			NOTIFICATION_HIDE_MINUTES = 5;
 		}
 		PlayerOptions.isShuffle = sharedPrefs.getBoolean("isShuffle", false);
 		PlayerOptions.repeatMode = sharedPrefs.getString("repeatMode", "OFF");
-		
-		// Audio focus listener
+
+		// Set up the MediaPlayer with the current song and saved progress position
+		mp.reset();
+		if(CurrentData.currentSong != null){
+			try{
+				mp.setDataSource(CurrentData.currentSong.songData.get("songPath"));
+				mp.prepare();
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+			oldTimer = sharedPrefs.getInt("currentTimer", 0);
+			Log.d("test", ""+ oldTimer);
+			mp.seekTo(oldTimer);
+
+			mp.setOnCompletionListener(this);
+
+			createNotification(false);	
+		}
+
+		// Set up audio focus listener
 		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
 	}
@@ -158,13 +172,15 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	@Override
 	public void onCompletion(MediaPlayer arg0) { 
 
+		Log.d("test", PlayerOptions.repeatMode);
+
 		// check whether repeat is ON or OFF
 		if(PlayerOptions.repeatMode == "SONG"){
 			// if repeat is on, play same song again
 			playSong();
 		} 
 		else if(CurrentData.currentSongIndex == CurrentData.currentPlaylist.songs.size()-1 && PlayerOptions.repeatMode.equals("OFF")){
-			Log.d("test", "Completed playlist");
+			// Completed playlist
 			PlayerStatus.endReached = true;
 			if (mListener!=null){
 				mListener.SetPlayButtonStatus("play");
@@ -175,8 +191,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		}
 	}
 
-
-	private boolean shouldResume = false;
 	public void onAudioFocusChange(int focusChange) {
 
 		switch (focusChange) {
@@ -196,9 +210,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 					e.printStackTrace();
 				} 
 
-				mp.seekTo(oldPosition.get());
-				oldPosition.set(0);
-
+				mp.seekTo(sharedPrefs.getInt("currentTimer", 0));
+				if(!shouldResume){
+					mp.pause();
+				}
 
 			}
 			else if (!mp.isPlaying()){
@@ -221,8 +236,13 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			}
 			if (mp != null && playing){
 				mp.stop();
-				oldPosition = new PositionTracker();
-				oldPosition.set(mp.getCurrentPosition());
+
+				// Record the current playback position
+				sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+				SharedPreferences.Editor editor = sharedPrefs.edit();
+				editor.putInt("currentTimer", mp.getCurrentPosition());
+				editor.commit();
+
 				if (mListener!=null){
 					mListener.SetPlayButtonStatus("play");
 				}
@@ -278,10 +298,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		headphoneReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
-					if (mp.isPlaying()){
-						pausePlayer();
-					}
+				if (mp.isPlaying() && AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+					pausePlayer();
 				}
 			}
 		};
@@ -295,7 +313,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			mListener.SetPlayButtonStatus("play");
 		}
 		updateNotification(false);
-		if(!AppStatus.isVisible){
+		if(!PlayerStatus.isVisible){
 			setAlarm();
 		}
 	}
@@ -334,156 +352,156 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		registerReceiver(notificationBroadcastReceiver, notificationFilter );
 	}
 
-	void playNext(){      
+	void getNextSong(){
+		if(PlayerOptions.isShuffle){  // shuffle is on
+
+			int songsLeft = 0;
+			for (int i = 0; i < CurrentData.currentPlaylist.songs.size(); i++){
+				songsLeft += CurrentData.shuffleQueue[i];
+			}
+
+			// Make sure we have a list to choose from
+			if(songsLeft == 0){
+				for(int i = 0; i < CurrentData.currentPlaylist.songs.size(); i++){
+					CurrentData.shuffleQueue[i] = 1;
+				}
+				songsLeft = CurrentData.currentPlaylist.songs.size();
+			}
+			if(CurrentData.currentSong == null){
+				// Choose a random song from the queue to start
+				Random rand = new Random();
+				int nextSongIndex = rand.nextInt(songsLeft);
+				CurrentData.shuffleQueue[nextSongIndex] = 0;
+				CurrentData.shuffleHistory.add(nextSongIndex);
+				CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(nextSongIndex);
+				CurrentData.currentSongIndex = 0;
+				CurrentData.currentPlaylistPosition = nextSongIndex;
+
+			}
+			if(CurrentData.shuffleHistory.isEmpty()){
+				// If the shuffle queue is empty, add the current song to it and remove that song from the shuffle queue
+				CurrentData.shuffleHistory.add(CurrentData.currentPlaylistPosition);
+				CurrentData.shuffleQueue[CurrentData.currentPlaylistPosition] = 0;
+			}
+			// Check if we're in the shuffle history
+			if (CurrentData.shuffleHistoryPosition > 0){
+
+				CurrentData.shuffleHistoryPosition = CurrentData.shuffleHistoryPosition - 1;
+
+				// Set the current song to the next one in the shuffle history
+				int index = CurrentData.shuffleHistory.get(CurrentData.shuffleHistory.size() - 1 - CurrentData.shuffleHistoryPosition);
+				CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(index);
+
+			}
+			else{ // Not in shuffle history
+
+				// Choose a random song from the queue
+				Random rand = new Random();
+				int seed = rand.nextInt(songsLeft);
+				int nextSongIndex = 0;
+				int count = 0;
+				do{
+					while(CurrentData.shuffleQueue[nextSongIndex] == 0){
+						nextSongIndex++;
+					}
+					count++;
+					if(count < seed){
+						// if we're not about to finish, skip the current songs so we can jump over the next block of zeroes.
+						nextSongIndex++;
+					}
+				}while(count < seed);
+
+
+				Song nextSong = CurrentData.currentPlaylist.songs.get(nextSongIndex);
+				CurrentData.shuffleQueue[nextSongIndex] = 0;
+				CurrentData.shuffleHistory.add(nextSongIndex);
+				CurrentData.currentSong = nextSong;
+				CurrentData.currentSongIndex = CurrentData.currentSongIndex + 1;
+				CurrentData.currentPlaylistPosition = nextSongIndex;
+
+			}
+			Gson gson = new Gson();
+			String shuffleHistoryJson = gson.toJson(CurrentData.shuffleHistory);
+			String shuffleQueueJson = gson.toJson(CurrentData.shuffleQueue);
+
+			SharedPreferences.Editor editor = sharedPrefs.edit();
+			editor.putString("shuffleHistory", shuffleHistoryJson);
+			editor.putString("shuffleQueue", shuffleQueueJson);
+			editor.putInt("shuffleHistoryPosition", CurrentData.shuffleHistoryPosition);
+			editor.commit();
+		} // shuffle is not on - play next song
+		else if(CurrentData.currentSong == null){
+			CurrentData.currentSongIndex = 0;
+			CurrentData.currentPlaylistPosition = 0;
+			CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
+		}
+		else if(CurrentData.currentSongIndex < (CurrentData.currentPlaylist.songs.size() - 1)){ 
+			// if we're NOT at the last song of the playlist
+			CurrentData.currentSongIndex = CurrentData.currentSongIndex + 1;
+			CurrentData.currentPlaylistPosition = CurrentData.currentPlaylistPosition + 1;
+			CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
+
+		}
+		else{ 
+			// if we ARE at the last song of the playlist
+			// play first song
+			CurrentData.currentSongIndex = 0;
+			CurrentData.currentPlaylistPosition = 0;
+			CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
+		}
+	}
+
+
+	void playNext(){   
+		if(CurrentData.currentPlaylist.songs.isEmpty()){
+			return;
+		}
 		if(CurrentData.currentPlaylist != null){
 
-			if(CurrentData.currentSong == null){
-				CurrentData.currentSongIndex = 0;
-				CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
-				playSong();
-			}
-			else if(PlayerOptions.isShuffle){  // shuffle is on
-				if(CurrentData.shuffleHistory.isEmpty()){
-					// If the shuffle queue is empty, add the current song to it and remove that song from the shuffle queue.
-					CurrentData.shuffleHistory.addFirst(CurrentData.currentSong);
-					for (int i = 0; i < CurrentData.currentPlaylist.songs.size(); i++){
-						if(CurrentData.currentPlaylist.songs.get(i).equals(CurrentData.currentSong)){
-							CurrentData.shuffleQueue.songs.remove(i);
-						}
-					}
-					
-				}
-				Song newSong = CurrentData.currentSong;
-				// Check if we're in the shuffle history
-				if (CurrentData.shuffleHistoryPosition > 1){
-					int i = 0;
-					CurrentData.shuffleHistoryPosition = CurrentData.shuffleHistoryPosition - 1;
-					for(Iterator<Song> itr = CurrentData.shuffleHistory.iterator(); i < CurrentData.shuffleHistoryPosition; i++)  {
-						newSong = itr.next();
-					}
-					
-					CurrentData.currentSong = newSong;
-					playSong();
-					Log.d("shuffle", "Size: " + CurrentData.shuffleHistory.size());
-					Log.d("shuffle", "Position: " + CurrentData.shuffleHistoryPosition);
-				}
-				else{
-					
-					// Not in shuffle history
-					if(CurrentData.currentSongIndex + 1 >= CurrentData.currentPlaylist.songs.size()){
-						
-						Log.d("shuffle", "size trigger");
-						
-						if(PlayerOptions.repeatMode.equals("SONG")){
-							playSong();
-							return;
-						}
-					}
-					// Make sure we have a list to choose from
-					if(CurrentData.shuffleQueue.songs.isEmpty()){
-						CurrentData.shuffleQueue = new Playlist(CurrentData.currentPlaylist);
-						Log.d("shuffle", "reshuffle");
-					}
+			getNextSong();
 
-					Random rand = new Random();
-					CurrentData.currentSongIndex = CurrentData.currentSongIndex + 1;
-
-					int nextSongIndex = rand.nextInt((CurrentData.shuffleQueue.songs.size()));
-					Song nextSong = CurrentData.shuffleQueue.songs.get(nextSongIndex);
-					CurrentData.shuffleQueue.songs.remove(nextSongIndex);
-					CurrentData.shuffleHistory.addFirst(nextSong);
-					CurrentData.currentSong = nextSong;
-
-					playSong();
-					Log.d("shuffle", "Size: " + CurrentData.shuffleHistory.size());
-					Log.d("shuffle", "Position: " + CurrentData.shuffleHistoryPosition);
-				}
-				
-				Gson gson = new Gson();
-				String shuffleHistoryJson = gson.toJson(CurrentData.shuffleHistory);
-				String shuffleQueueJson = gson.toJson(CurrentData.shuffleQueue);
-				
-				SharedPreferences.Editor editor = sharedPrefs.edit();
-				editor.putString("shuffleHistory", shuffleHistoryJson);
-				editor.putString("shuffleQueue", shuffleQueueJson);
-				editor.putInt("shuffleHistoryPosition", CurrentData.shuffleHistoryPosition);
-				editor.commit();
-			} // shuffle is not on - play next song
-			else if(CurrentData.currentSongIndex < (CurrentData.currentPlaylist.songs.size() - 1)){ // if we're NOT at the last song of the playlist
-				CurrentData.currentSongIndex = CurrentData.currentSongIndex + 1;
-				try{
-					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
-				}catch(IndexOutOfBoundsException e){
-
-				}
-
-				playSong();
-
-			}
-			else{ // if we ARE at the last song of the playlist
-				// play first song
-				CurrentData.currentSongIndex = 0;
-				try{
-					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
-				}catch(IndexOutOfBoundsException e){
-
-				}
-				playSong();
-			}
+			playSong();
 		}
-		// Save the new player state in Shared Prefs:
+		// Tell the Activity to update the UI for the new song. 
+		if (mListener!=null){
+			mListener.changeUIforSong(true);
+		}
+
+		// Now save the new player state in Shared Prefs:
 		Gson gson = new Gson();
 		String songJson = gson.toJson(CurrentData.currentSong);
 
 		SharedPreferences.Editor editor = sharedPrefs.edit();
 		editor.putString("currentSong", songJson);
 		editor.putInt("currentSongIndex", CurrentData.currentSongIndex);
+		editor.putInt("currentPlaylistPosition", CurrentData.currentPlaylistPosition);
 		editor.commit();
-
-		// Now tell the Activity to update the UI for the new song. 
-		if (mListener!=null){
-			mListener.changeUIforSong(true);
-		}
 	}
 
+
+
 	void playPrevious(){
+		if(CurrentData.currentPlaylist.songs.isEmpty()){
+			return;
+		}
+		// If we're more than 3 seconds into the song, just seek back to the beginning.
 		if(mp.getCurrentPosition() > 3000){
 			mp.seekTo(0);
 		}
 		else if(PlayerOptions.isShuffle){
-			if (CurrentData.shuffleHistoryPosition < CurrentData.shuffleHistory.size()){
-				int i = 0;
-				Song newSong = CurrentData.currentSong;
-				
-				// WOW This is SUPER ugly it works. The problem is that 0 and 1 are treated the same, 
-				// so there's some weird lag when switching directions via previous / next.
-				// This could probably be done better, but it works right not and it's not the biggest deal.
-				if(CurrentData.shuffleHistoryPosition == 0){   
-					CurrentData.shuffleHistoryPosition = 1;
+			if (CurrentData.shuffleHistoryPosition < CurrentData.shuffleHistory.size() - 1){
+				if (CurrentData.shuffleHistoryPosition == CurrentData.shuffleHistory.size() ){
+					playSong();
 				}
-
-				CurrentData.shuffleHistoryPosition = CurrentData.shuffleHistoryPosition + 1;
-				
-				for(Iterator<Song> itr = CurrentData.shuffleHistory.iterator(); i < CurrentData.shuffleHistoryPosition; i++)  {
-					newSong = itr.next();
-					Log.d("shuffle", "back back back");
+				else{
+					CurrentData.shuffleHistoryPosition = CurrentData.shuffleHistoryPosition + 1;
+					int index = CurrentData.shuffleHistory.get(CurrentData.shuffleHistory.size() - 1 - CurrentData.shuffleHistoryPosition);
+					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(index);
+					playSong();
 				}
-				
-				
-				
-				CurrentData.currentSongIndex = CurrentData.currentSongIndex - 1;
-				if (CurrentData.currentSongIndex < 0){
-					CurrentData.currentSongIndex = 0;
-				}
-				CurrentData.currentSong = newSong;
-				playSong();
-				Log.d("shuffle", "Size: " + CurrentData.shuffleHistory.size());
-				Log.d("shuffle", "Position: " + CurrentData.shuffleHistoryPosition);
 			}
 			else{
-				playSong();
-				Log.d("shuffle", "Size: " + CurrentData.shuffleHistory.size());
-				Log.d("shuffle", "Position: " + CurrentData.shuffleHistoryPosition);
+				// We're at the furtherest back song, do nothing
 			}
 		} else{
 			// shuffle off - play previous song
@@ -492,7 +510,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				try{
 					CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(CurrentData.currentSongIndex);
 				}catch(IndexOutOfBoundsException e){
-
+					e.printStackTrace();
 				}
 				playSong();
 
@@ -508,67 +526,27 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 			}
 		}
-		// Save the new player state in Shared Prefs:
+		// Tell the Activity to update the UI for the new song. 
+		if (mListener!=null){
+			mListener.changeUIforSong(true);			
+		}
+
+		// Now save the new player state in Shared Prefs:
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		Gson gson = new Gson();
 		String songJson = gson.toJson(CurrentData.currentSong);
 		SharedPreferences.Editor editor = sharedPrefs.edit();
 		editor.putString("currentSong", songJson);
 		editor.putInt("currentSongIndex", CurrentData.currentSongIndex);
+		editor.putInt("currentPlaylistPosition", CurrentData.currentPlaylistPosition);
 		editor.commit();
-
-		// Now tell the Activity to update the UI for the new song. 
-		if (mListener!=null){
-			mListener.changeUIforSong(true);			
-		}
 	}
 
+	
 
-	// The following functions are accessible to MusicPlayerActivity for communication with the UI
-	public void setDataSource(String input){
-		try{
-			mp.setDataSource(input);
-			PlayerStatus.playerReady = true;
-		}catch(IOException e){
-
-		}
-	}
-
-	public void reset() {
-		mp.reset();
-	}
-
-	public void setAlarm() {
-		// Set an alarm to stop running in foreground after NOTIFICATION_HIDE_MINUTES minutes.
-		am.set( AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000 * 60 * NOTIFICATION_HIDE_MINUTES, alarmpi );  
-		PlayerStatus.alarm_set = true;
-	}
-
-	public void cancelAlarm() {
-		// Cancel the alarm from setAlarm().
-		am.cancel(alarmpi);
-		PlayerStatus.alarm_set = false;
-	}
-
-	public void prepare() {
-		try{
-			mp.prepare();
-		}catch(IOException e){
-
-		}
-	}
-
-	public void start() {
-		if  (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-				AudioManager.AUDIOFOCUS_GAIN)){
-			hasAudioFocus = true;
-		}
-		if (true) {
-			mp.start();
-		}
-	}
-
-	public void playSong(){
+	// Call when you want to play CurrentData.currentSong
+	// Calls play() and updates the UI.
+	public void playSong(){ 
 		if(CurrentData.currentSong != null){
 			try{
 				play();
@@ -584,12 +562,14 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		}
 		else if(CurrentData.currentPlaylist.songs.size() != 0){
 			CurrentData.currentSongIndex = 0;
+			CurrentData.currentPlaylistPosition = 0;
 			CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
 			playSong();
 		}
 	}
 
-	public void play() {
+	// Called by the playSong function, does the MediaPlayer mechanics
+	public void play() { 
 
 		if  (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
 				AudioManager.AUDIOFOCUS_GAIN)){
@@ -609,20 +589,19 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		}
 	}
 
+	// Loads CurrentData.currentSong into the MediaPlayer class.
 	public void loadCurrentSong(){
 		mp.reset();
 		try {
 			mp.setDataSource(CurrentData.currentSong.songData.get("songPath"));
-			//			mp.prepare();
 			PlayerStatus.playerReady = false;
 			PlayerStatus.timerReset = true;
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (IndexOutOfBoundsException e) {
-			e.printStackTrace();
 		} 
 	}
 
+	// Creates a new system notification
 	public void createNotification(boolean isPlaying)
 	{
 
@@ -647,6 +626,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 	}
 
+	// Updates existing system notification
 	public void updateNotification(boolean isPlaying) {
 		final int notificationID = 1;
 
@@ -708,8 +688,29 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 	}
 
+	// Called when MediaPlayer is ready to actually play a song.
+	public void onPrepared(MediaPlayer player) {
+		PlayerStatus.playerReady = true;
+		player.start();
+		mp.setOnCompletionListener(this);
+	}
+
+	// Update information about the current song
+	public void updateCurrentSong(){ 
+
+		if(CurrentData.currentSong != null){
+			currentSongArtist = CurrentData.currentSong.songData.get("songArtist");
+			currentSongTitle = CurrentData.currentSong.songData.get("songTitle");
+		}
+		else{
+			currentSongArtist = " ";
+			currentSongTitle = " ";	
+		}
 
 
+	}
+
+	// The following few functions are an interface that we expose to MusicPlayerActivity
 	public void pause() {
 		mp.pause();
 	}
@@ -721,18 +722,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	public void create() {
 		mp = new MediaPlayer();
 	}
-
-	public PlayerOptions getPlayerOptions(){
-		return po;
-	}
-
-	//	public boolean isShuffle() {
-	//		return PlayerOptions.isShuffle;
-	//	}
-
-	//	public boolean isRepeat() {
-	//		return PlayerOptions.isRepeat;
-	//	}
 
 	public boolean isPlaying() {
 		if (mp == null)
@@ -763,29 +752,56 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		return oldTimer;
 	}
 
+	public void setDataSource(String input){
+		try{
+			mp.setDataSource(input);
+			PlayerStatus.playerReady = true;
+		}catch(IOException e){
 
-	/** Called when MediaPlayer is ready */
-	public void onPrepared(MediaPlayer player) {
-		PlayerStatus.playerReady = true;
-		player.start();
-		mp.setOnCompletionListener(this);
+		}
+	}
+
+	public void reset() {
+		mp.reset();
+	}
+
+	public void setAlarm() {
+		// Set an alarm to stop running in foreground after NOTIFICATION_HIDE_MINUTES minutes.
+		am.set( AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000 * 60 * NOTIFICATION_HIDE_MINUTES, alarmpi ); 
+		PlayerStatus.alarm_set = true;
+	}
+
+	public void cancelAlarm() {
+		// Cancel the alarm from setAlarm().
+		am.cancel(alarmpi);
+		PlayerStatus.alarm_set = false;
+	}
+
+	public void prepare() {
+		try{
+			mp.prepare();
+		}catch(IOException e){
+
+		}
+	}
+
+	public void start() {
+		if  (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+				AudioManager.AUDIOFOCUS_GAIN)){
+			hasAudioFocus = true;
+		}
+		if (true) {
+			mp.start();
+		}
 	}
 
 
-	public void updateCurrentSong(){ 
 
-		if(CurrentData.currentSong != null){
-			currentSongArtist = CurrentData.currentSong.songData.get("songArtist");
-			currentSongTitle = CurrentData.currentSong.songData.get("songTitle");
-		}
-		else{
-			currentSongArtist = " ";
-			currentSongTitle = " ";	
-		}
+	@Override
+	public boolean onUnbind(Intent intent) {
 
-
+		return super.onUnbind(intent);
 	}
-
 
 
 	@Override
@@ -796,11 +812,12 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		unregisterReceiver(headphoneReceiver);
 		unregisterReceiver(notificationBroadcastReceiver);
 
-		// Store the current playlist in system settings.
+		// Store the current song progress in system settings.
 
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		SharedPreferences.Editor editor = sharedPrefs.edit();
 		editor.putInt("currentTimer", mp.getCurrentPosition());
+		Log.d("test", "destroyed at " + mp.getCurrentPosition());
 		editor.commit();
 
 		mp.stop();
@@ -808,53 +825,3 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		super.onDestroy();
 	}
 }
-
-
-
-
-class PlayerStatus {
-	public static boolean notification_set = false;
-	public static boolean alarm_set = false;
-	public static boolean playlistReset;
-	public static boolean endReached = false;
-	public static boolean playerReady = false;
-	public static boolean timerReset = false;
-}
-
-// CurrentData should hold more temporary data than LibraryInfo.
-
-class CurrentData {
-	// Default constructor
-	{
-		currentSong = new Song("Song", "Album", "Artist", "NOPATH");
-		shuffleHistory = new ArrayDeque<Song>();
-		shuffleQueue = new Playlist();
-	}
-
-	public static Song currentSong;
-	public static Playlist currentPlaylist;
-	public static int currentSongIndex;
-	public static Deque<Song> shuffleHistory;
-	public static int shuffleHistoryPosition;
-	public static Playlist shuffleQueue;
-	public static void clearPlaylist(){
-		currentPlaylist = new Playlist();
-	}
-	public static void shuffleReset(){
-		shuffleHistory = new ArrayDeque<Song>();
-		shuffleHistoryPosition = 0;
-		shuffleQueue = new Playlist(currentPlaylist); 
-	}
-}
-
-
-class PlayerOptions	{
-	// Default constructor
-	PlayerOptions(){
-		repeatMode = "OFF";
-		isShuffle = false;
-	}
-	public static String repeatMode;
-	public static boolean isShuffle;
-}
-

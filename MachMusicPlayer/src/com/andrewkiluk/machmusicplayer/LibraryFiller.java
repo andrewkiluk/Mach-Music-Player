@@ -1,6 +1,7 @@
 package com.andrewkiluk.machmusicplayer;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -233,19 +234,16 @@ public class LibraryFiller {
 				else 
 					songData.put("trackNumber", "0");
 
-				// The following commented code will load song lengths. It's pretty slow, so since the layout doesn't use it yet it's commented.
+				// The following code will load song lengths. It's pretty slow, so since the layout doesn't use it yet it's commented.
 
-				//				try{
-				//					mp.reset();
-				//					mp.setDataSource(filepath);
-				//					mp.prepare();
-				//				}catch(IOException e){
-				//					continue;
-				//				}
-				//				songData.put("Duration", Integer.toString(mp.getDuration()));
-
-
-
+				try{
+					mp.reset();
+					mp.setDataSource(filepath);
+					mp.prepare();
+					songData.put("Duration", Integer.toString(mp.getDuration()));
+				}catch(IOException e){
+					songData.put("Duration", "error");
+				}
 
 				// Adding each song to SongList
 				LibraryInfo.songsList.add(new Song(songData));
@@ -261,7 +259,7 @@ public class LibraryFiller {
 			if(removeDuplicateSongs){
 				// Remove duplicate songs
 				ArrayList<Song> filtered = new ArrayList<Song>(LibraryInfo.songsList);
-				
+
 				int numberRemoved = 0;
 				for(int i = 0; i < LibraryInfo.songsList.size() - 1; i++){
 					if (LibraryInfo.songsList.get(i).equals(LibraryInfo.songsList.get(i+1))){
@@ -331,175 +329,4 @@ public class LibraryFiller {
 			}
 		}
 	}
-}
-
-class TrackNumberComparator implements Comparator<Song>
-{
-	public int compare(Song first,
-			Song second)
-	{
-		int firstnumber = first.track();
-		int secondnumber = second.track();
-		return firstnumber - secondnumber;
-	}
-}
-
-
-class Song implements Comparable<Song>
-{
-	public HashMap<String, String> songData;
-
-	Song(Song oldCopy){
-		HashMap<String, String> newCopy = new HashMap<String, String>();
-		for (String key : oldCopy.songData.keySet()) {
-			newCopy.put(key, oldCopy.songData.get(key));
-		}
-		this.songData = newCopy;
-	}
-
-	Song(String title, String album, String artist, String path){
-		songData = new HashMap<String, String>();
-		songData.put("songArtist", artist);
-		songData.put("songAlbum", album);
-		songData.put("songTitle", title);
-		songData.put("songPath", path);
-	}
-
-	Song(HashMap<String, String> input){
-		songData = input;
-	}
-	public int track(){
-		String temp = songData.get("trackNumber");
-		int number;
-		if(temp.indexOf('/') > 0){
-			number = Integer.parseInt(temp.substring(0, temp.indexOf('/')));
-		}
-		else{
-			number = Integer.parseInt(temp);
-		}
-		return number;
-	}
-	public String artist(){
-		return songData.get("songArtist");
-	}
-	public String albumArtist(){
-		if(songData.get("songAlbumArtist") != null){
-			return songData.get("songAlbumArtist");
-		}
-		else{
-			return songData.get("songArtist");
-		}
-	}
-	public String path(){
-		return songData.get("songPath");
-	}
-	public String album(){
-		return songData.get("songAlbum");
-	}
-	public String title(){
-		return songData.get("songTitle");
-	}
-	public int compareTo(Song other)
-	{
-		return this.track() - other.track();
-	}
-	public boolean equals(Song other){
-		if(this.title().equals(other.title() ) && this.artist().equals(other.artist() ) && this.album().equals(other.album() )){
-			return true;
-		}
-		else{
-			return false;
-		}
-
-	}
-}
-
-class Album
-{
-	Album()
-	{
-		title = null;
-		songs = new ArrayList<Song>();
-		artist = null;
-	}
-	Album(String input)
-	{
-		title = input;
-		songs = new ArrayList<Song>();
-		artist = null;
-	}
-	public void addSong(Song song){
-		songs.add(song);
-	}
-	public String title;
-	public String artist;
-	public ArrayList<Song> songs;
-}
-
-class Artist
-{
-	Artist()
-	{
-		name = null;
-		albums = new ArrayList<Album>();
-	}
-	Artist(String input)
-	{
-		name = input;
-		albums = new ArrayList<Album>();
-	}
-	public void addAlbum(Album album){
-		albums.add(album);
-	}
-	public String name;
-	public ArrayList<Album> albums;
-}
-
-class Playlist{
-	Playlist(){
-		this.songs = new ArrayList<Song>();
-		this.name = "<No name>";
-	}
-	Playlist(Playlist playlist){
-		Playlist newCopy = new Playlist(playlist.songs, playlist.name);
-		this.songs = newCopy.songs;
-		this.name = newCopy.name;
-	}
-	Playlist(ArrayList<Song> songs, String name){
-		ArrayList<Song> newSongs = new ArrayList<Song>();
-		for(Song song  : songs){
-			Song newSong = new Song(song);
-			newSongs.add(newSong);
-		}
-		this.songs = newSongs;
-		this.name = name;
-	}
-
-	public ArrayList<Song> songs;
-	public String name;
-}
-
-class LibraryInfo
-{
-	LibraryInfo(){
-		songsList = new ArrayList<Song>();
-		newSongs = new ArrayList<Song>();
-		artistsList = new ArrayList<Artist>();
-		albumsList = new ArrayList<Album>();
-		isInitialized = true;
-		currentSongIndex = 0;
-		currentPlaylist = new Playlist(new ArrayList<Song>(), "__CURRENT_PLAYLIST__");
-		playlists = new ArrayList<Playlist>();
-	}
-	public static void clearPlaylist(){
-		currentPlaylist = new Playlist();
-	}
-	public static boolean isInitialized = false;
-	public static ArrayList<Song> songsList;
-	public static Playlist currentPlaylist;
-	public static int currentSongIndex;
-	public static ArrayList<Playlist> playlists;
-	public static ArrayList<Song> newSongs;
-	public static ArrayList<Artist> artistsList;
-	public static ArrayList<Album> albumsList;
 }
