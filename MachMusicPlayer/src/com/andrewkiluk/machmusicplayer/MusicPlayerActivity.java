@@ -1,5 +1,7 @@
 package com.andrewkiluk.machmusicplayer;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.ComponentName;
@@ -56,6 +58,8 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 	private int albumArtSize;
 
+	AtomicBoolean updateTimeThreadLock;
+
 	// Media Player
 	private  mp3Player mp;
 
@@ -92,6 +96,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			Intent intent = new Intent(this, MusicPlayerService.class);
 			bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 		}
+		updateTimeThreadLock = new AtomicBoolean(false);
 
 	}
 
@@ -704,13 +709,16 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	public void updateProgressBar() {
 		mHandler.postDelayed(mUpdateTimeTask, 100);
 	}   
-
+	
 	/**
 	 * Thread for updating the time display.
 	 * */
 	private Runnable mUpdateTimeTask = new Runnable() {
 		public void run() {
 			if(mBound){
+
+				boolean otherThread = updateTimeThreadLock.getAndSet(true);
+
 				// First, if there is no current song, we set both labels to be blank.
 				if(CurrentData.currentSong == null){
 					songTotalDurationLabel.setText("");
@@ -757,9 +765,21 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				int progress = (int)(utils.getProgressPercentage(currentDuration, totalDuration));
 				songProgressBar.setProgress(progress);
 
-				// Re-run this thread after 100 milliseconds
-				mHandler.postDelayed(this, 100);
+				// Reset the lock and re-run this thread after 100 milliseconds
+				if(!otherThread){
+					mHandler.postDelayed(resetLockAndRunTimeTask, 100);
+				}
 			}
+		}
+	};
+	
+	/**
+	 * Thread which resets the updateTime lock, then runs updateTimeTask.
+	 * */
+	private Runnable resetLockAndRunTimeTask = new Runnable() {
+		public void run() {
+			updateTimeThreadLock.set(false);
+			mHandler.post(mUpdateTimeTask);
 		}
 	};
 
