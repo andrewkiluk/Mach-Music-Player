@@ -217,7 +217,6 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 		if (PlayerOptions.isShuffle){
 			// The shuffle scheme is interrupted here, so reset the history and queue.
 			CurrentData.shuffleReset();
-			CurrentData.currentSongIndex = 0;
 		}
 		else{
 			CurrentData.currentSongIndex = songIndex;

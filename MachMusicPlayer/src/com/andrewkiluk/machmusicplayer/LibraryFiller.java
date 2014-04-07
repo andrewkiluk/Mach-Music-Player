@@ -179,6 +179,7 @@ public class LibraryFiller {
 		ContentResolver contentResolver = context.getContentResolver();
 		Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 		Cursor cursor = contentResolver.query(uri, null, null, null, null);
+		Utilities utils = new Utilities();
 		if (cursor == null) {
 			Log.d("debuggg", "Oh shit!");
 			return;
@@ -234,8 +235,7 @@ public class LibraryFiller {
 				else 
 					songData.put("trackNumber", "0");
 
-				// The following code will load song lengths. It's pretty slow, so since the layout doesn't use it yet it's commented.
-
+				// This adds the song durations to the HashMap
 				try{
 					mp.reset();
 					mp.setDataSource(filepath);

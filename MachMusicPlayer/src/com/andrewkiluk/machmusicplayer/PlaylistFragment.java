@@ -7,7 +7,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,14 +14,16 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import com.mobeta.android.dslv.DSLVFragment;
 
 
 
 
-public class PlaylistFragment extends ListFragment {
-
+public class PlaylistFragment extends DSLVFragment {
+	
 	public interface TouchListener {
 		public void songPicked(int songIndex);
 		public void playerReset();
@@ -46,31 +47,48 @@ public class PlaylistFragment extends ListFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
+		super.onCreateView(inflater, container, savedInstanceState);
 
 		View rootView = inflater.inflate(R.layout.fragment_playlist, container, false);
 
-		// looping through playlist
-		ArrayList<String> songnamesList = new ArrayList<String>();
-		if (LibraryInfo.isInitialized){
-			int i=0;
-			for (Song song : CurrentData.currentPlaylist.songs) {
-				// creating new HashMap
-				songnamesList.add(Integer.toString(++i) + ") " + song.title());
-			}
-
-			// Adding menuItems to ListView
-			ListAdapter adapter = new ArrayAdapter<String>(getActivity(),
-					R.layout.playlist_builder_item, songnamesList);
-			setListAdapter(adapter);
-		}
-
 		return rootView;
+	}
+	
+	
+	
+	
+	@Override
+	public void setListAdapter() {
+//		if (LibraryInfo.isInitialized){
+////			int i=0;
+//			ArrayList<String> songnamesList = new ArrayList<String>();
+//			for (Song song : CurrentData.currentPlaylist.songs) {
+//				// creating new HashMap
+//				songnamesList.add(song.title());
+//			}
+//			// Adding menuItems to ListView
+//			adapter = new ArrayAdapter<String>(getActivity(), getItemLayout(), R.id.text, songnamesList);
+//			setListAdapter(adapter);
+//			
+//			
+//		}
+		
+		adapter = new PlayListAdapter(getActivity(), R.layout.list_item_handle_left, CurrentData.currentPlaylist.songs);
+		setListAdapter(adapter);
 	}
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		// selecting single ListView item
 		ListView lv = getListView();
+		
+		View listEntry;
+		TextView numberHolder;
+		for (int i = 0; i < lv.getCount(); i++) {
+			listEntry = lv.getAdapter().getView(i, null, null);
+	        numberHolder = (TextView) listEntry.findViewById(R.id.time);
+	        numberHolder.setText(Integer.toString(i));
+	    }
 
 		// listening to single listitem click
 		lv.setOnItemClickListener(new OnItemClickListener() {
@@ -114,7 +132,7 @@ public class PlaylistFragment extends ListFragment {
 							// Decrement the position tracking variables to correct for the change in playlist size
 							CurrentData.currentPlaylistPosition = CurrentData.currentPlaylistPosition - 1;
 							CurrentData.currentSongIndex = CurrentData.currentSongIndex - 1;
-							
+
 						}
 						CurrentData.currentPlaylist.songs.remove(currentSongPosition);
 

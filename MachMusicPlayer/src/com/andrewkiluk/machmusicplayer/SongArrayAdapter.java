@@ -6,18 +6,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 // here's our beautiful adapter
-public class ArrayAdapterItem extends ArrayAdapter<ListItemData> {
+public class SongArrayAdapter extends ArrayAdapter<SongListData> {
 
 	Context mContext;
 	int layoutResourceId;
-	ListItemData data[] = null;
+	SongListData data[] = null;
 	boolean selectedStatus[];
 
-	public ArrayAdapterItem(Context mContext, int layoutResourceId, ListItemData[] data) {
+	public SongArrayAdapter(Context mContext, int layoutResourceId, SongListData[] data) {
 
 		super(mContext, layoutResourceId, data);
 
@@ -51,8 +51,9 @@ public class ArrayAdapterItem extends ArrayAdapter<ListItemData> {
 
 			// set up the ViewHolder
 			viewHolder = new ViewHolderItem();
-			viewHolder.textViewItem = (TextView) convertView.findViewById(R.id.label);
-			viewHolder.layoutItem = (RelativeLayout) viewHolder.textViewItem.getParent();
+			viewHolder.textViewLabel = (TextView) convertView.findViewById(R.id.label);
+			viewHolder.textViewTime = (TextView) convertView.findViewById(R.id.time);
+			viewHolder.layoutItem = (LinearLayout) viewHolder.textViewLabel.getParent();
 
 			// store the holder with the view.
 			convertView.setTag(viewHolder);
@@ -66,36 +67,16 @@ public class ArrayAdapterItem extends ArrayAdapter<ListItemData> {
 		}
 
 		// object item based on the position
-		ListItemData objectItem = data[position];
+		SongListData objectItem = data[position];
 
 		// assign values if the object is not null
 		if(objectItem != null) {
 			// get the TextView from the ViewHolder and then set the text (item name) and tag (item ID) values
-			viewHolder.textViewItem.setText(objectItem.itemName);
-			viewHolder.textViewItem.setTag(objectItem.itemId);
+			viewHolder.textViewLabel.setText(objectItem.itemName);
+			viewHolder.textViewTime.setText(objectItem.songDuration);
+			viewHolder.textViewLabel.setTag(objectItem.itemId);
 		}
 		
-//		if(selectedStatus[position]){
-//            viewHolder.layoutItem.setBackgroundResource(R.color.footercolor);
-//            Log.d("class",""+ LibraryInfo.newSongs.size());
-//        }
-//        else{
-//            viewHolder.layoutItem.setBackgroundResource(R.color.selected);
-//            Log.d("class",""+ LibraryInfo.newSongs.size());
-//        }
-//		Song newSong = data[position].song;
-//		ArrayList<Song>localNewSongs = new ArrayList<Song> (LibraryInfo.newSongs);
-//		if(localNewSongs.contains(newSong)){
-//			for(Song song : localNewSongs){
-//				if(song.title().equals(newSong.title() ) && song.artist().equals(newSong.artist() ) && song.album().equals(newSong.album() )){
-//					LibraryInfo.newSongs.remove(LibraryInfo.newSongs.indexOf(song));
-//				}
-//			}
-//		}
-//		else{
-//			LibraryInfo.newSongs.add(newSong);   
-//		}
-
 		return convertView;
 
 	}
@@ -114,8 +95,9 @@ public class ArrayAdapterItem extends ArrayAdapter<ListItemData> {
 	}
 
 	static class ViewHolderItem {
-		TextView textViewItem;
-		RelativeLayout layoutItem;
+		TextView textViewLabel;
+		TextView textViewTime;
+		LinearLayout layoutItem;
 	}
 
 

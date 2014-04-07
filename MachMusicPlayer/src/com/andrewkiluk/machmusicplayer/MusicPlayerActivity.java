@@ -136,8 +136,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		ActionBar bar = getActionBar();
 		bar.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.tabcolor)));
 
-
-
 		// All player buttons
 		btnPlay = (ImageButton) findViewById(R.id.playButton);
 		btnNext = (ImageButton) findViewById(R.id.nextButton);
@@ -175,6 +173,11 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 		if(PlayerOptions.isShuffle){
 			btnShuffle.setBackgroundResource(R.drawable.control_button_selected);
+		}
+
+		// Check to see if the CurrentData class needs to be loaded
+		if (!CurrentData.isInitialized){
+			LoadingScreenActivity.loadOldSettings(getApplicationContext(), sharedPrefs);
 		}
 
 		// Listeners
@@ -427,7 +430,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 					// Turn on shuffle
 					PlayerOptions.isShuffle = true;
 					CurrentData.shuffleReset();
-					CurrentData.currentSongIndex = 0;
 					makeToast("Shuffle is ON");
 					btnShuffle.setBackgroundResource(R.drawable.control_button_selected);
 				}

@@ -14,7 +14,7 @@ import android.widget.ListView;
 public class SongsFragment extends ListFragment {
 
 	private ListView lv;
-	ArrayAdapterItem adapter;
+	SongArrayAdapter adapter;
 	public String origin;
 	public int artistPosition;
 	public int albumPosition;
@@ -43,17 +43,18 @@ public class SongsFragment extends ListFragment {
 
 
 
-		ListItemData[] ObjectItemData = new ListItemData[songsList.size()];
+		SongListData[] ObjectItemData = new SongListData[songsList.size()];
 
 		// looping through playlist
 		int i=0;
 		if (LibraryInfo.isInitialized){
+			Utilities utils = new Utilities();
 			for (Song song : songsList) {
-				ObjectItemData[i] = new ListItemData(i, song.title(), song);
+				ObjectItemData[i] = new SongListData(i, song.title(), song, utils.milliSecondsToTimer(Integer.parseInt(song.duration()))); 
 				i++;
 			}
 
-			adapter = new ArrayAdapterItem(getActivity(), R.layout.list_view_row_item, ObjectItemData);
+			adapter = new SongArrayAdapter(getActivity(), R.layout.list_view_row_item, ObjectItemData);
 
 			// If we got here from an albums list and the album was selected, set the UI to have all songs begin as selected.
 

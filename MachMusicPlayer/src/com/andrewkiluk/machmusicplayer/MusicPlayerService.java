@@ -45,7 +45,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	// For checking and storing preferences
 	private SharedPreferences sharedPrefs;
 	int NOTIFICATION_HIDE_MINUTES;
-	int oldTimer;
 
 	// For dealing with audio focus handling
 	public AudioManager audioManager;
@@ -154,9 +153,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			}catch(IOException e){
 				e.printStackTrace();
 			}
-			oldTimer = sharedPrefs.getInt("currentTimer", 0);
-			Log.d("test", ""+ oldTimer);
-			mp.seekTo(oldTimer);
+			mp.seekTo(sharedPrefs.getInt("currentTimer", 0));
 
 			mp.setOnCompletionListener(this);
 
@@ -306,18 +303,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		registerReceiver(headphoneReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY) );
 	}
 
-	public void pausePlayer()
-	{
-		mp.pause();
-		if(mListener  != null){
-			mListener.SetPlayButtonStatus("play");
-		}
-		updateNotification(false);
-		if(!PlayerStatus.isVisible){
-			setAlarm();
-		}
-	}
-
 	public void initializeNotificationBroadcastReceiver(){
 		notificationBroadcastReceiver = new BroadcastReceiver() {
 			@Override
@@ -350,6 +335,18 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		notificationFilter.addAction("com.andrewkiluk.notificationBroadcastReceiver.previous");
 
 		registerReceiver(notificationBroadcastReceiver, notificationFilter );
+	}
+	
+	public void pausePlayer()
+	{
+		mp.pause();
+		if(mListener  != null){
+			mListener.SetPlayButtonStatus("play");
+		}
+		updateNotification(false);
+		if(!PlayerStatus.isVisible){
+			setAlarm();
+		}
 	}
 
 	void getNextSong(){
@@ -746,10 +743,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	public int getCurrentPosition()
 	{
 		return mp.getCurrentPosition();
-	}
-
-	public int getOldTimer(){
-		return oldTimer;
 	}
 
 	public void setDataSource(String input){
