@@ -1,9 +1,6 @@
 package com.andrewkiluk.machmusicplayer;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Random;
 
 import android.app.AlarmManager;
