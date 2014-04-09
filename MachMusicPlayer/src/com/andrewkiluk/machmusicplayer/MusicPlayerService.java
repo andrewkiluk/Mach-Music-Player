@@ -54,6 +54,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	// For system notifications
 	private NotificationCompat.Builder notificationBuilder;
 	private BroadcastReceiver notificationBroadcastReceiver;
+	
+	// Wakelock for keeping CPU running while playing in background
+	PowerManager.WakeLock wakeLock;
 
 	// For album art in the system notification
 	byte[] art;
@@ -101,7 +104,11 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		// Create the MediaPlayer
 		mp = new MediaPlayer();
-		mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+//		mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+		
+		// Create WakeLock
+		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
 
 		// Run various setup functions
 		initializeNotificationBroadcastReceiver();
@@ -161,7 +168,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
 	}
-
 
 	@Override
 	public void onCompletion(MediaPlayer arg0) { 
@@ -277,6 +283,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			@Override
 			public void onReceive(Context c, Intent i) {
 				stopForeground(true);
+				wakeLock.release();
 			}
 		};
 		registerReceiver(alarmReceiver, new IntentFilter("com.andrewkiluk.servicealarm") );
@@ -670,6 +677,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 				notification.flags |= Notification.FLAG_NO_CLEAR;
 				startForeground(notificationID, notification);
+				// Set a partial wake lock
+				wakeLock.acquire();
+				
 				PlayerStatus.notification_set = true;	
 
 

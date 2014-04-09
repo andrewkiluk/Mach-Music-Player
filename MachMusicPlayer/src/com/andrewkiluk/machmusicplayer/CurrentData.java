@@ -39,86 +39,91 @@ public class CurrentData {
 		for(int i = 0; i < currentPlaylist.songs.size(); i++){
 			shuffleQueue[i] = 1;
 		}
-		CurrentData.currentSongIndex = 0;
-		CurrentData.shuffleQueue[CurrentData.currentPlaylistPosition] = 0;
-		CurrentData.shuffleHistory.add(CurrentData.currentPlaylistPosition);
+		if(PlayerOptions.isShuffle){
+			CurrentData.currentSongIndex = 0;
+			if(CurrentData.currentSong != null){
+				// Add the current song to the shuffle history and remove it from the shuffle queue
+				CurrentData.shuffleQueue[CurrentData.currentPlaylistPosition] = 0;
+				CurrentData.shuffleHistory.add(CurrentData.currentPlaylistPosition);
+			}
+		}
 	}
 }
 
 
-	class PlayerStatus {
-		public static boolean isVisible = false;
-		public static boolean notification_set = false;
-		public static boolean alarm_set = false;
-		public static boolean playlistReset = false;
-		public static boolean endReached = false;
-		public static boolean playerReady = false;
-		public static boolean timerReset = false;
-	}
+class PlayerStatus {
+	public static boolean isVisible = false;
+	public static boolean notification_set = false;
+	public static boolean alarm_set = false;
+	public static boolean playlistReset = false;
+	public static boolean endReached = false;
+	public static boolean playerReady = false;
+	public static boolean timerReset = false;
+}
 
 
-	class Album
+class Album
+{
+	Album()
 	{
-		Album()
-		{
-			title = null;
-			songs = new ArrayList<Song>();
-			artist = null;
-		}
-		Album(String input)
-		{
-			title = input;
-			songs = new ArrayList<Song>();
-			artist = null;
-		}
-		public void addSong(Song song){
-			songs.add(song);
-		}
-		public String title;
-		public String artist;
-		public ArrayList<Song> songs;
+		title = null;
+		songs = new ArrayList<Song>();
+		artist = null;
 	}
-
-	class Artist
+	Album(String input)
 	{
-		Artist()
-		{
-			name = null;
-			albums = new ArrayList<Album>();
-		}
-		Artist(String input)
-		{
-			name = input;
-			albums = new ArrayList<Album>();
-		}
-		public void addAlbum(Album album){
-			albums.add(album);
-		}
-		public String name;
-		public ArrayList<Album> albums;
+		title = input;
+		songs = new ArrayList<Song>();
+		artist = null;
 	}
+	public void addSong(Song song){
+		songs.add(song);
+	}
+	public String title;
+	public String artist;
+	public ArrayList<Song> songs;
+}
 
-	class LibraryInfo
+class Artist
+{
+	Artist()
 	{
-		LibraryInfo(){
-			songsList = new ArrayList<Song>();
-			newSongs = new ArrayList<Song>();
-			artistsList = new ArrayList<Artist>();
-			albumsList = new ArrayList<Album>();
-			isInitialized = true;
-			currentSongIndex = 0;
-			currentPlaylist = new Playlist(new ArrayList<Song>(), "__CURRENT_PLAYLIST__");
-			playlists = new ArrayList<Playlist>();
-		}
-		public static void clearPlaylist(){
-			currentPlaylist = new Playlist();
-		}
-		public static boolean isInitialized = false;
-		public static ArrayList<Song> songsList;
-		public static Playlist currentPlaylist;
-		public static int currentSongIndex;
-		public static ArrayList<Playlist> playlists;
-		public static ArrayList<Song> newSongs;
-		public static ArrayList<Artist> artistsList;
-		public static ArrayList<Album> albumsList;
+		name = null;
+		albums = new ArrayList<Album>();
 	}
+	Artist(String input)
+	{
+		name = input;
+		albums = new ArrayList<Album>();
+	}
+	public void addAlbum(Album album){
+		albums.add(album);
+	}
+	public String name;
+	public ArrayList<Album> albums;
+}
+
+class LibraryInfo
+{
+	LibraryInfo(){
+		songsList = new ArrayList<Song>();
+		newSongs = new ArrayList<Song>();
+		artistsList = new ArrayList<Artist>();
+		albumsList = new ArrayList<Album>();
+		isInitialized = true;
+		currentSongIndex = 0;
+		currentPlaylist = new Playlist(new ArrayList<Song>(), "__CURRENT_PLAYLIST__");
+		playlists = new ArrayList<Playlist>();
+	}
+	public static void clearPlaylist(){
+		currentPlaylist = new Playlist();
+	}
+	public static boolean isInitialized = false;
+	public static ArrayList<Song> songsList;
+	public static Playlist currentPlaylist;
+	public static int currentSongIndex;
+	public static ArrayList<Playlist> playlists;
+	public static ArrayList<Song> newSongs;
+	public static ArrayList<Artist> artistsList;
+	public static ArrayList<Album> albumsList;
+}
