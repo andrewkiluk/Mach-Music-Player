@@ -14,16 +14,16 @@ public class SongsFragmentContainer extends Fragment {
 			Bundle savedInstanceState) {
 
 		View rootView = inflater.inflate(R.layout.fragment_list_container, container, false);
-
-		SongsFragment songsFragment = new SongsFragment();
-		Bundle songArgs = new Bundle();
-		songArgs.putInt("artistPosition", -1);
-		songArgs.putInt("albumPosition", -1);
-		songArgs.putString("origin", "songs");
-		songsFragment.setArguments(songArgs);
-		FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-		transaction.replace(R.id.list_frame, songsFragment).commit(); 
-
+		if(LibraryInfo.songsList.size() > 0){
+			SongsFragment songsFragment = new SongsFragment();
+			Bundle songArgs = new Bundle();
+			songArgs.putInt("artistPosition", -1);
+			songArgs.putInt("albumPosition", -1);
+			songArgs.putString("origin", "songs");
+			songsFragment.setArguments(songArgs);
+			FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+			transaction.replace(R.id.list_frame, songsFragment).commit(); 
+		}
 
 
 		return rootView;

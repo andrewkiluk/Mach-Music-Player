@@ -182,6 +182,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		else if(CurrentData.currentSongIndex == CurrentData.currentPlaylist.songs.size()-1 && PlayerOptions.repeatMode.equals("OFF")){
 			// Completed playlist
 			PlayerStatus.endReached = true;
+			if (!PlayerStatus.isVisible){
+				setAlarm();
+			}
 			if (mListener!=null){
 				mListener.SetPlayButtonStatus("play");
 			}
@@ -218,7 +221,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			}
 			else if (!mp.isPlaying()){
 				if (shouldResume){
-					mp.start();
+//					mp.start();
 					shouldResume = false;
 				}
 			}
@@ -235,7 +238,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				playing = false;
 			}
 			if (mp != null && playing){
-				mp.stop();
 
 				// Record the current playback position
 				sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -243,13 +245,15 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				editor.putInt("currentTimer", mp.getCurrentPosition());
 				editor.commit();
 
+				mp.stop();
+				
 				if (mListener!=null){
 					mListener.SetPlayButtonStatus("play");
 				}
 				hasAudioFocus = false;
 			}
-			mp.release();
-			mp = null;
+//			mp.release();
+//			mp = null;
 			break;
 
 		case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
@@ -348,9 +352,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			mListener.SetPlayButtonStatus("play");
 		}
 		updateNotification(false);
-		if(!PlayerStatus.isVisible){
-			setAlarm();
-		}
+		setAlarm();
 	}
 
 	void getNextSong(){
@@ -768,6 +770,12 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	public void setAlarm() {
 		// Set an alarm to stop running in foreground after NOTIFICATION_HIDE_MINUTES minutes.
 		am.set( AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000 * 60 * NOTIFICATION_HIDE_MINUTES, alarmpi ); 
+		
+		// Save the current player timer.
+		SharedPreferences.Editor editor = sharedPrefs.edit();
+		editor.putInt("currentTimer", mp.getCurrentPosition());
+		editor.commit();
+		
 		PlayerStatus.alarm_set = true;
 	}
 

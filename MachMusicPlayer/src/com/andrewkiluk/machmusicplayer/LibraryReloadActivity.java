@@ -1,7 +1,10 @@
 package com.andrewkiluk.machmusicplayer;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -17,9 +20,9 @@ public class LibraryReloadActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		
+
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		WindowManager.LayoutParams params = getWindow().getAttributes();
@@ -27,8 +30,8 @@ public class LibraryReloadActivity extends Activity {
 		params.height = 100;
 		params.width = 250;
 		params.y = 0;
-		
-		
+
+
 
 		this.getWindow().setAttributes(params);
 
@@ -59,11 +62,20 @@ public class LibraryReloadActivity extends Activity {
 			Playlist currentPlaylist = LibraryInfo.currentPlaylist;
 			LibraryFiller libFillAll = new LibraryFiller(getApplicationContext());
 			libFillAll.loadLibrary();
+
+			// Record new value for oldCursorCount
+			ContentResolver contentResolver = getApplicationContext().getContentResolver();
+			Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+			Cursor cursor = contentResolver.query(uri, null, null, null, null);
+			SharedPreferences.Editor editor = sharedPrefs.edit();
+			editor.putInt("oldCursorCount", cursor.getCount());
+			editor.commit();
+
 			LibraryInfo.currentPlaylist = currentPlaylist;
-			
+
 			Gson gson = new Gson();
 			String songsListJson = gson.toJson(LibraryInfo.songsList);
-			SharedPreferences.Editor editor = sharedPrefs.edit();
+			editor = sharedPrefs.edit();
 			editor.putString("songsList", songsListJson);
 			editor.commit();
 			finish();

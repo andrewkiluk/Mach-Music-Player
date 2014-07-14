@@ -591,7 +591,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	protected void onActivityResult(int requestCode,
 			int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if(resultCode == 100){
+		if(resultCode == 321){
 			// Play selected song.
 			mService.playSong();
 			// update UI for new song

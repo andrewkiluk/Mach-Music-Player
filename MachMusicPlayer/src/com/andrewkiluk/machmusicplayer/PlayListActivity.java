@@ -226,7 +226,7 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 
 
 
-		setResult(100, in);
+		setResult(321, in);
 		// Closing PlayListView
 		finish();
 	}

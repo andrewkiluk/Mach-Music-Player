@@ -4,9 +4,12 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -22,6 +25,8 @@ public class LoadingScreenActivity extends Activity {
 
 	private SharedPreferences sharedPrefs;
 	private String oldsongsListJson;
+	private LibraryFiller libFill;
+	boolean mediaChanged;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -30,11 +35,25 @@ public class LoadingScreenActivity extends Activity {
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 		CurrentData init = new CurrentData(); // Used to initialize static fields in CurrentData
 
+		// Load oldCursorCount to check if the media on the device has changed
+		int oldCursorCount = sharedPrefs.getInt("oldCursorCount", 0);
+
+		// Compare oldCursorCount to current to see if 
+		ContentResolver contentResolver = getApplicationContext().getContentResolver();
+		Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+		Cursor cursor = contentResolver.query(uri, null, null, null, null);
+		if(cursor.getCount() != oldCursorCount){
+			mediaChanged = true;
+			SharedPreferences.Editor editor = sharedPrefs.edit();
+			editor.putInt("oldCursorCount", cursor.getCount());
+			editor.commit();
+		}
+
 		// Load old songsList
 		oldsongsListJson = sharedPrefs.getString("songsList", "null");
-		if (!oldsongsListJson.equals("null")){
+		if (!oldsongsListJson.equals("null") && !mediaChanged){
 			loadOldSettings(getApplicationContext(), sharedPrefs);
-
+			LibraryFiller libFill = new LibraryFiller(getApplicationContext());
 			Intent i = new Intent(LoadingScreenActivity.this, MusicPlayerActivity.class);
 			startActivity(i);
 			finish();
@@ -56,7 +75,7 @@ public class LoadingScreenActivity extends Activity {
 		String oldsongsListJson = sharedPrefs.getString("songsList", "null");
 		LibraryInfo.songsList = gson.fromJson(oldsongsListJson, listType);
 		libFill.buildLibraryFromSongsList();
-		Log.d("Library", "Old library Loaded");
+//		Log.d("Library", "Old library Loaded");
 
 		// Check if there is a stored current song; if so, load it.
 		String oldSongJson = sharedPrefs.getString("currentSong", "null");
@@ -78,7 +97,7 @@ public class LoadingScreenActivity extends Activity {
 
 		if (!oldPlaylistJson.equals("null")){
 			CurrentData.currentPlaylist = gson.fromJson(oldPlaylistJson, Playlist.class);
-			Log.d("Library", "Old playlist Loaded:" + oldPlaylistJson);
+//			Log.d("Library", "Old playlist Loaded:" + oldPlaylistJson);
 		}
 		else{
 			CurrentData.currentPlaylist = new Playlist();

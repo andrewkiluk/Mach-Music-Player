@@ -17,6 +17,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.util.Log;
 
 public class LibraryFiller {
@@ -180,29 +181,26 @@ public class LibraryFiller {
 		Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 		Cursor cursor = contentResolver.query(uri, null, null, null, null);
 		Utilities utils = new Utilities();
-		if (cursor == null) {
-			Log.d("debuggg", "Oh shit!");
-			return;
-		} else if (!cursor.moveToFirst()) {
+		if (!cursor.moveToFirst()) {
 			// no media on the device
-			Log.d("debuggg", "Nothing found!!");
+			Log.d("debug", "Nothing found!!");
 			return;
 		} else {
 			MediaPlayer mp = new MediaPlayer();
 			do {
+				
+				// Beginning of loop to add a single song
+				
 				int column_index = cursor.getColumnIndex(android.provider.MediaStore.MediaColumns.DATA);
 				String filepath = cursor.getString(column_index);
-				Log.d("debuggg", "Filepath: " + filepath);
+				Log.d("debug", "Filepath: " + filepath);
 
 				// Optional loop to avoid non-song media files
 				if(filteringOn){
+					
+					String isMusic = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AudioColumns.IS_MUSIC));
 
-					if(filepath.contains("/notifications/")
-							|| filepath.contains("/Notifications/")
-							|| filepath.contains("/Ringtones/")
-							|| filepath.contains("/ringtones/")
-							|| filepath.contains("/Android/data")
-							){
+					if(isMusic.equals("0")){
 						continue;
 					}
 				}
