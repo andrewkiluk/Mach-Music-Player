@@ -207,7 +207,11 @@ public class LibraryFiller {
 
 				HashMap<String, String> songData = new HashMap<String, String>();
 				// Populate the hashmap with ID3 info.
-				mmr.setDataSource(filepath);
+				try{
+					mmr.setDataSource(filepath);
+				} catch(RuntimeException e){
+					continue;
+				}
 				if(filepath != null)
 					songData.put("songPath", filepath);
 				else 

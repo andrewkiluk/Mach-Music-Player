@@ -35,11 +35,15 @@ public class Song implements Comparable<Song>
 	public int track(){
 		String temp = songData.get("trackNumber");
 		int number;
-		if(temp.indexOf('/') > 0){
-			number = Integer.parseInt(temp.substring(0, temp.indexOf('/')));
-		}
-		else{
-			number = Integer.parseInt(temp);
+		try{
+			if(temp.indexOf('/') > 0){
+				number = Integer.parseInt(temp.substring(0, temp.indexOf('/')));
+			}
+			else{
+				number = Integer.parseInt(temp);
+			}
+		} catch (NumberFormatException e){
+			number = 0;
 		}
 		return number;
 	}

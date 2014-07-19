@@ -195,6 +195,13 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 	public void onAudioFocusChange(int focusChange) {
+		
+		boolean playing;
+		try{
+			playing = mp.isPlaying();
+		}catch(IllegalStateException e){
+			playing = false;
+		}
 
 		switch (focusChange) {
 		case AudioManager.AUDIOFOCUS_GAIN:
@@ -219,7 +226,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				}
 
 			}
-			else if (!mp.isPlaying()){
+			else if (!playing){
 				if (shouldResume){
 //					mp.start();
 					shouldResume = false;
@@ -231,12 +238,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		case AudioManager.AUDIOFOCUS_LOSS:
 			// Lost focus for an unbounded amount of time: stop playback and release media player
-			boolean playing;
-			try{
-				playing = mp.isPlaying();
-			}catch(IllegalStateException e){
-				playing = false;
-			}
 			if (mp != null && playing){
 
 				// Record the current playback position
@@ -260,7 +261,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			// Lost focus for a short time, but we have to stop
 			// playback. We don't release the media player because playback
 			// is likely to resume
-			if (mp.isPlaying()){
+			if (playing){
 				pausePlayer();
 			}
 			hasAudioFocus = false;
@@ -270,7 +271,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
 			// Lost focus for a short time, but it's ok to keep playing
 			// at an attenuated level
-			if (mp.isPlaying()) mp.setVolume(0.1f, 0.1f);
+			if (playing) mp.setVolume(0.1f, 0.1f);
 			break;
 		}
 	}
