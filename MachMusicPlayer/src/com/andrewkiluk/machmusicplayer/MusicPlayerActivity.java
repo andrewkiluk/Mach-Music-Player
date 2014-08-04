@@ -16,6 +16,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaMetadataRetriever;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -604,7 +605,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 
 	/**
-	 * Function to play a song.
+	 * Function to update all the data in the main view for the currently playing song.
 	 * The parameter isPlaying indicates whether a song is playing, and the function sets the play / pause button appropriately.
 	 * We explicitly pass the player status rather than just calling mp.isPlaying() since the state in the MediaPlayer object
 	 * is updated asynchronously, and mp.isPlaying() may not return the correct value without synchronization mechanisms.
@@ -631,7 +632,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		songArtistLabel.setText(songArtist);
 		songAlbumLabel.setText(songAlbum);
 
-		startUpdateAlbumArt();
+		new AlbumArtUpdater().execute();
 
 		// Changing Button Image to correct image
 		if (isPlaying){
@@ -654,14 +655,31 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 	}
 
-	//	Asynchronously update album art
-
-	// Need handler for callbacks to the UI thread
-	final Handler albumArtHandler = new Handler();
-
-	// Create runnable for posting
-	final Runnable updateAlbumArt = new Runnable() {
-		public void run() {
+	// Thread for updating album art
+	
+	private class AlbumArtUpdater extends AsyncTask<Void, Void, Integer> {
+		
+		protected Integer doInBackground(Void... v) {
+			
+			MediaMetadataRetriever acr = new MediaMetadataRetriever();
+			if(CurrentData.currentSong != null){
+				acr.setDataSource(CurrentData.currentSong.songData.get("songPath"));
+				try{
+					art = acr.getEmbeddedPicture();
+					songImage = BitmapFactory
+							.decodeByteArray(art, 0, art.length);
+				}
+				catch(Exception e){
+					songImage = null;
+				}
+			}
+			else{
+				songImage = null;
+			}
+			return 0;
+		}
+		protected void onPostExecute(Integer result) {
+			
 			ImageView albumFrame = (ImageView) findViewById(R.id.albumFrame);
 			if(songImage != null)
 				albumFrame.setImageBitmap(songImage);
@@ -669,37 +687,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				albumFrame.setImageResource(android.R.color.transparent);
 			}
 		}
-	};
-
-	private void startUpdateAlbumArt() {
-
-		Thread t = new Thread() {
-			public void run() {
-				android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-				MediaMetadataRetriever acr = new MediaMetadataRetriever();
-				if(CurrentData.currentSong != null){
-
-					acr.setDataSource(CurrentData.currentSong.songData.get("songPath"));
-					try{
-						art = acr.getEmbeddedPicture();
-						songImage = BitmapFactory
-								.decodeByteArray(art, 0, art.length);
-						albumArtHandler.post(updateAlbumArt);
-					}
-					catch(Exception e){
-						songImage = null;
-						albumArtHandler.post(updateAlbumArt);
-					}
-
-				}
-				else{
-					songImage = null;
-					albumArtHandler.post(updateAlbumArt);
-				}
-
-			}
-		};
-		t.start();
 	}
 
 
@@ -709,7 +696,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	public void updateProgressBar() {
 		mHandler.postDelayed(mUpdateTimeTask, 100);
 	}   
-	
+
 	/**
 	 * Thread for updating the time display.
 	 * */
@@ -772,7 +759,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			}
 		}
 	};
-	
+
 	/**
 	 * Thread which resets the updateTime lock, then runs updateTimeTask.
 	 * */
