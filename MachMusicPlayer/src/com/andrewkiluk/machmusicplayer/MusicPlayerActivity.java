@@ -704,7 +704,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		public void run() {
 			if(mBound){
 
-				boolean otherThread = updateTimeThreadLock.getAndSet(true);
+				boolean otherThreadPresent = updateTimeThreadLock.getAndSet(true);
 
 				// First, if there is no current song, we set both labels to be blank.
 				if(CurrentData.currentSong == null){
@@ -753,7 +753,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				songProgressBar.setProgress(progress);
 
 				// Reset the lock and re-run this thread after 100 milliseconds
-				if(!otherThread){
+				if(!otherThreadPresent){
 					mHandler.postDelayed(resetLockAndRunTimeTask, 100);
 				}
 			}

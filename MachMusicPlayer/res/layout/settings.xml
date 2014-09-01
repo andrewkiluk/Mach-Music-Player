@@ -15,7 +15,7 @@
             android:defaultValue="true"
             android:key="big_notifications"
             android:summary="Display album art in the Big Picture format in notifications."
-            android:title="Big Picture Notifications" />
+            android:title="Use Big Picture Notifications" />
 
         <EditTextPreference
             android:defaultValue="5"
@@ -36,7 +36,7 @@
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="onlyAlbumArtists"
-            android:summary="Only list artists who own albums. This will prevent multiple artists from showing up from complilations."
+            android:summary="Only list artists who have associated albums. This will prevent multiple artists from showing up from compilations."
             android:title="Only Show Album Artists" />
         
         <CheckBoxPreference
