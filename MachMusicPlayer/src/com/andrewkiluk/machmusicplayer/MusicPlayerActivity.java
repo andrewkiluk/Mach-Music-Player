@@ -60,6 +60,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	private int albumArtSize;
 
 	AtomicBoolean updateTimeThreadLock;
+	boolean progressSliderPressed;
 
 	// Media Player
 	private  mp3Player mp;
@@ -73,8 +74,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 	SharedPreferences sharedPrefs;
 
-	boolean mBound = false; // Tells whether activity is bound to background service.
-	boolean firstBind = true; // Used to detect whether to set some things up upon binding.
+	boolean boundToService = false; // Tells whether activity is bound to background service.
 
 	long totalDuration = 0;
 	long currentDuration = 0;
@@ -92,12 +92,15 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	@Override
 	protected void onStart() {
 		super.onStart();
-		if (!mBound){
+		if (!boundToService){
 			// Bind to MusicPlayerService
 			Intent intent = new Intent(this, MusicPlayerService.class);
-			bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+			bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
 		}
+		
+		// Updating progress bar
 		updateTimeThreadLock = new AtomicBoolean(false);
+		updateProgressBar();
 
 	}
 
@@ -136,7 +139,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		// Start the background service controlling the MediaPlayer object
 		Intent i = new Intent(getApplicationContext(), MusicPlayerService.class);
 		startService(i);
-		bindService(i, mConnection, Context.BIND_AUTO_CREATE);
+		bindService(i, serviceConnection, Context.BIND_AUTO_CREATE);
 
 		// Change the action bar color        
 		ActionBar bar = getActionBar();
@@ -293,11 +296,6 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			params.height = albumArtSize;
 			params.width = albumArtSize;
 		}
-		// Updating progress bar
-		updateProgressBar();
-
-
-
 
 
 		/**
@@ -320,7 +318,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 						CurrentData.currentPlaylistPosition = 0;
 						CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(0);
 						PlayerStatus.endReached = false;
-						if(mBound){
+						if(boundToService){
 							mService.playSong();
 						}
 						updateSongUI(mp.isPlaying());
@@ -328,7 +326,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 					// check for already playing
 					if(mp.isPlaying()){
-						if(mBound){
+						if(boundToService){
 							mService.pausePlayer();
 						}
 					}else{
@@ -361,7 +359,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			@Override
 			public void onClick(View arg0) {
-				if(mBound){
+				if(boundToService){
 					mService.playNext();
 				}
 			}
@@ -375,7 +373,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 			@Override
 			public void onClick(View arg0) {
-				if(mBound){
+				if(boundToService){
 					mService.playPrevious();
 				}
 			}
@@ -471,14 +469,14 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		super.onPause();
 		PlayerStatus.isVisible = false;
 
-		if (mBound) {
+		if (boundToService) {
 			if (!mp.isPlaying()){
 				// Set an alarm if not playing
 				mService.setAlarm();
 			}
 			// Unbind from the service
-			unbindService(mConnection);
-			mBound = false;
+			unbindService(serviceConnection);
+			boundToService = false;
 		}
 	}
 
@@ -504,7 +502,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	 * Establish a connection with the background service.
 	 * */
 
-	private ServiceConnection mConnection = new ServiceConnection() {
+	private ServiceConnection serviceConnection = new ServiceConnection() {
 
 		@Override
 		public void onServiceConnected(ComponentName className,
@@ -512,7 +510,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			// We've bound to MusicPlayerService, cast the IBinder and get MusicPlayerService instance
 			LocalBinder binder = (LocalBinder) service;
 			mService = binder.getService();
-			mBound = true;
+			boundToService = true;
 
 			binder.setListener(new BoundServiceListener() {
 
@@ -554,7 +552,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 		@Override
 		public void onServiceDisconnected(ComponentName arg0) {
-			mBound = false;
+			boundToService = false;
 		}
 	};
 
@@ -642,13 +640,9 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			btnPlay.setImageResource(R.drawable.ic_action_play);
 		}
 
-
 		// set Progress bar values
 		songProgressBar.setProgress(0);
 		songProgressBar.setMax(1000);
-
-
-
 
 		// Updating progress bar
 		updateProgressBar();
@@ -694,15 +688,15 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	 * Update timer on seekbar.
 	 * */
 	public void updateProgressBar() {
-		mHandler.postDelayed(mUpdateTimeTask, 100);
+		mHandler.post(updateTimeTask);
 	}   
 
 	/**
 	 * Thread for updating the time display.
 	 * */
-	private Runnable mUpdateTimeTask = new Runnable() {
+	private Runnable updateTimeTask = new Runnable() {
 		public void run() {
-			if(mBound){
+			if(boundToService){
 
 				boolean otherThreadPresent = updateTimeThreadLock.getAndSet(true);
 
@@ -747,26 +741,20 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 				if(currentDuration < totalDuration || CurrentData.currentSong == null){
 					songCurrentDurationLabel.setText(String.valueOf(utils.milliSecondsToTimer(currentDuration)));
 				}
-
+				
 				// Update progress bar
-				int progress = (int)(utils.getProgressPercentage(currentDuration, totalDuration));
-				songProgressBar.setProgress(progress);
+				if(!progressSliderPressed){
+					int progress = (int)(utils.getProgressPercentage(currentDuration, totalDuration));
+					songProgressBar.setProgress(progress);
+				}
+				
 
 				// Reset the lock and re-run this thread after 100 milliseconds
 				if(!otherThreadPresent){
-					mHandler.postDelayed(resetLockAndRunTimeTask, 100);
+					updateTimeThreadLock.set(false);
+					mHandler.postDelayed(updateTimeTask, 100);
 				}
 			}
-		}
-	};
-
-	/**
-	 * Thread which resets the updateTime lock, then runs updateTimeTask.
-	 * */
-	private Runnable resetLockAndRunTimeTask = new Runnable() {
-		public void run() {
-			updateTimeThreadLock.set(false);
-			mHandler.post(mUpdateTimeTask);
 		}
 	};
 
@@ -782,8 +770,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	 * */
 	@Override
 	public void onStartTrackingTouch(SeekBar seekBar) {
-		// remove message Handler from updating progress bar
-		mHandler.removeCallbacks(mUpdateTimeTask);
+		progressSliderPressed = true;
 	}
 
 	/**
@@ -791,8 +778,9 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	 * */
 	@Override
 	public void onStopTrackingTouch(SeekBar seekBar) {
+		progressSliderPressed = false;
 		try{
-			mHandler.removeCallbacks(mUpdateTimeTask);
+			mHandler.removeCallbacks(updateTimeTask);
 			int totalDuration = mp.getDuration();
 			int currentPosition = utils.progressToTimer(seekBar.getProgress(), totalDuration);
 
@@ -828,7 +816,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 	{
 
 		public boolean isNull() {
-			if (mBound) {
+			if (boundToService) {
 				return mService.isNull();
 			}
 			else return true;
@@ -836,35 +824,35 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 		public void prepare()
 		{
-			if (mBound) {
+			if (boundToService) {
 				mService.prepare();	            
 			}
 		}
 
 		public void reset()
 		{
-			if (mBound) {
+			if (boundToService) {
 				mService.reset();	            
 			}
 		}
 
 		public void setDataSource(String input)
 		{
-			if (mBound) {
+			if (boundToService) {
 				mService.setDataSource(input);	            
 			}
 		}
 
 		public void start()
 		{
-			if (mBound) {
+			if (boundToService) {
 				mService.start();	            
 			}
 		}
 
 		public boolean isPlaying()
 		{
-			if (mBound) {
+			if (boundToService) {
 				return mService.isPlaying();	            
 			}
 			else return false;
@@ -872,26 +860,26 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 
 		public void pause()
 		{
-			if (mBound) {
+			if (boundToService) {
 				mService.pause();	            
 			}
 		}
 
 		public void release()
 		{
-			if (mBound) {
+			if (boundToService) {
 				mService.release();	            
 			}
 		}
 		public void seekTo(int currentPosition)
 		{
-			if (mBound) {
+			if (boundToService) {
 				mService.seekTo(currentPosition);	            
 			}
 		}
 		public int getDuration()
 		{
-			if (mBound) {
+			if (boundToService) {
 				return mService.getDuration();	            
 			}
 			else{
@@ -900,7 +888,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 		}
 		public int getCurrentPosition()
 		{
-			if (mBound) {
+			if (boundToService) {
 				return mService.getCurrentPosition();	            
 			}
 			else{

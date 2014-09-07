@@ -16,7 +16,6 @@ public class CurrentData {
 		shuffleHistory = new ArrayList<Integer>();
 		currentPlaylist = new Playlist();
 		shuffleQueue = new int[currentPlaylist.songs.size()];
-
 	}
 
 	public static Song currentSong;						// Song which is up for playing
