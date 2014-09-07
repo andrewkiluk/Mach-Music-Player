@@ -12,10 +12,10 @@ import android.widget.TextView;
 // here's our beautiful adapter
 public class SongArrayAdapter extends ArrayAdapter<SongListData> {
 
-	Context mContext;
-	int layoutResourceId;
-	SongListData data[] = null;
-	boolean selectedStatus[];
+	public Context mContext;
+	public int layoutResourceId;
+	public SongListData data[] = null;
+	public boolean selectedStatus[];
 
 	public SongArrayAdapter(Context mContext, int layoutResourceId, SongListData[] data) {
 
@@ -27,11 +27,6 @@ public class SongArrayAdapter extends ArrayAdapter<SongListData> {
 		this.data = data;
 	}
 	
-	
-	
-	
-	
-
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 

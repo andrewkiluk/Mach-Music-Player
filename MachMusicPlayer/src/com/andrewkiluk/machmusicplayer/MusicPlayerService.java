@@ -27,6 +27,11 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.andrewkiluk.machmusicplayer.activities.MusicPlayerActivity;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.PlayerOptions;
+import com.andrewkiluk.machmusicplayer.models.PlayerStatus;
+import com.andrewkiluk.machmusicplayer.models.Song;
 import com.google.gson.Gson;
 
 
@@ -181,7 +186,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		} 
 		else if(CurrentData.currentSongIndex == CurrentData.currentPlaylist.songs.size()-1 && PlayerOptions.repeatMode.equals("OFF")){
 			// Completed playlist
-			PlayerStatus.endReached = true;
+			PlayerStatus.playListComplete = true;
 			if (!PlayerStatus.isVisible){
 				setAlarm();
 			}
@@ -356,7 +361,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		setAlarm();
 	}
 
-	void getNextSong(){
+	public void getNextSong(){
 		if(PlayerOptions.isShuffle){  // shuffle is on
 
 			int songsLeft = 0;
@@ -456,7 +461,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 
-	void playNext(){   
+	public void playNext(){   
 		if(CurrentData.currentPlaylist.songs.isEmpty()){
 			return;
 		}
@@ -484,7 +489,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 
 
-	void playPrevious(){
+	public void playPrevious(){
 		if(CurrentData.currentPlaylist.songs.isEmpty()){
 			return;
 		}

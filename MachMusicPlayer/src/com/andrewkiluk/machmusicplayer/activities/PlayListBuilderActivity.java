@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.activities;
 
 import java.util.ArrayList;
 
@@ -15,6 +15,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+
+import com.andrewkiluk.machmusicplayer.PlayListBuilderAdapter;
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
+import com.andrewkiluk.machmusicplayer.models.PlayerStatus;
+import com.andrewkiluk.machmusicplayer.models.SelectionStatus;
+import com.andrewkiluk.machmusicplayer.models.Song;
 
 public class PlayListBuilderActivity extends FragmentActivity implements
 ActionBar.TabListener{
@@ -188,32 +196,4 @@ ActionBar.TabListener{
 		// TODO Auto-generated method stub
 
 	}
-}
-
-
-class SelectionStatus{
-	
-	public static boolean songsListSelection[];
-	public static boolean albumsListSelection[][];
-	public static boolean artistsListSelection[][][];
-	
-	SelectionStatus(){
-		songsListSelection = new boolean[LibraryInfo.songsList.size()];
-		int maxAlbumSongs = 0;
-		for(Album album : LibraryInfo.albumsList){
-			if(album.songs.size() > maxAlbumSongs){
-				maxAlbumSongs = album.songs.size();
-			}
-		}
-		int maxAlbumNumber = 0;
-		for(Artist artist: LibraryInfo.artistsList){
-			if(artist.albums.size() > maxAlbumNumber){
-				maxAlbumNumber = artist.albums.size();
-			}
-		}
-		albumsListSelection = new boolean[LibraryInfo.albumsList.size()][maxAlbumSongs];
-		artistsListSelection = new boolean[LibraryInfo.artistsList.size()][maxAlbumNumber][maxAlbumSongs];
-		
-	}
-	
 }

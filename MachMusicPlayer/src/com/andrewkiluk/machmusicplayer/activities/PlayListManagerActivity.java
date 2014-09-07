@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.activities;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,6 +21,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.fragments.PlaylistFragment;
+import com.andrewkiluk.machmusicplayer.fragments.PlaylistManagerFragment;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
+import com.andrewkiluk.machmusicplayer.models.PlayerStatus;
+import com.andrewkiluk.machmusicplayer.models.Playlist;
 import com.google.gson.Gson;
 
 

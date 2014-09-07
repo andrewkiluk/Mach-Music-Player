@@ -1,6 +1,13 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.fragments;
 
 import java.util.ArrayList;
+
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.R.id;
+import com.andrewkiluk.machmusicplayer.R.layout;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
+import com.andrewkiluk.machmusicplayer.models.Playlist;
 
 import android.app.Activity;
 import android.app.AlertDialog;

@@ -1,4 +1,9 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.fragments;
+
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.R.id;
+import com.andrewkiluk.machmusicplayer.R.layout;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

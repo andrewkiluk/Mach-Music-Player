@@ -6,7 +6,7 @@
 
     <uses-sdk
         android:minSdkVersion="16"
-        android:targetSdkVersion="19" />
+        android:targetSdkVersion="20" />
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -17,7 +17,7 @@
         android:icon="@drawable/ic_action_play"
         android:label="@string/app_name" >
         <activity
-            android:name="com.andrewkiluk.machmusicplayer.LoadingScreenActivity"
+            android:name="com.andrewkiluk.machmusicplayer.activities.LoadingScreenActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@android:style/Theme.NoTitleBar" >
             <intent-filter>
@@ -27,20 +27,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.andrewkiluk.machmusicplayer.MusicPlayerActivity"
+            android:name="com.andrewkiluk.machmusicplayer.activities.MusicPlayerActivity"
             android:screenOrientation="portrait"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/app_name" />
         <activity
-            android:name="com.andrewkiluk.machmusicplayer.LibraryReloadActivity"
+   			android:name="com.andrewkiluk.machmusicplayer.activities.LibraryReloadActivity"
             android:theme="@android:style/Theme.Dialog" />
 
         <service android:name="com.andrewkiluk.machmusicplayer.MusicPlayerService" />
 
-        <activity android:name="com.andrewkiluk.machmusicplayer.PlayListActivity" />
-        <activity android:name="com.andrewkiluk.machmusicplayer.PlayListManagerActivity" />
-        <activity android:name="com.andrewkiluk.machmusicplayer.SettingsActivity" />
-        <activity android:name="com.andrewkiluk.machmusicplayer.PlayListBuilderActivity" />
+        <activity android:name="com.andrewkiluk.machmusicplayer.activities.PlayListActivity" />
+        <activity android:name="com.andrewkiluk.machmusicplayer.activities.PlayListManagerActivity" />
+        <activity android:name="com.andrewkiluk.machmusicplayer.activities.SettingsActivity" />
+        <activity android:name="com.andrewkiluk.machmusicplayer.activities.PlayListBuilderActivity" />
     </application>
 
 </manifest><!-- MusicPlayerActivity -->

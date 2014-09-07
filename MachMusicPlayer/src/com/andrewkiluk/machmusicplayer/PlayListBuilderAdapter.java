@@ -1,5 +1,9 @@
 package com.andrewkiluk.machmusicplayer;
 
+import com.andrewkiluk.machmusicplayer.fragments.AlbumsFragmentContainer;
+import com.andrewkiluk.machmusicplayer.fragments.ArtistsFragmentContainer;
+import com.andrewkiluk.machmusicplayer.fragments.SongsFragmentContainer;
+
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;

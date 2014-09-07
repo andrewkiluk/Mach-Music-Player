@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.fragments;
 
 import java.util.ArrayList;
 
@@ -10,6 +10,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.SongArrayAdapter;
+import com.andrewkiluk.machmusicplayer.SongListData;
+import com.andrewkiluk.machmusicplayer.Utilities;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
+import com.andrewkiluk.machmusicplayer.models.SelectionStatus;
+import com.andrewkiluk.machmusicplayer.models.Song;
 
 public class SongsFragment extends ListFragment {
 

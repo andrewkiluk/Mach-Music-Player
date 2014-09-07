@@ -44,7 +44,6 @@
             android:id="@+id/playlist_footer_buttons"
             android:layout_width="fill_parent"
             android:layout_height="50dp"
-            android:layout_alignParentBottom="true"
             android:layout_marginBottom="7dp"
             android:layout_marginTop="7dp"
             android:background="@color/tabcolor"

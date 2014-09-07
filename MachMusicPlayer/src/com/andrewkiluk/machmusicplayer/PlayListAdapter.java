@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.andrewkiluk.machmusicplayer.Utilities;
+import com.andrewkiluk.machmusicplayer.models.Song;
 import com.google.gson.Gson;
 import com.mobeta.android.dslv.DragSortListView;
 

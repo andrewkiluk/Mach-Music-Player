@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.models;
 
 
  

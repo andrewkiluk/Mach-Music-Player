@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.activities;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -15,6 +15,13 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.andrewkiluk.machmusicplayer.LibraryFiller;
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.R.layout;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
+import com.andrewkiluk.machmusicplayer.models.Playlist;
+import com.andrewkiluk.machmusicplayer.models.Song;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 

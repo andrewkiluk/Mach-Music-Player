@@ -1,5 +1,7 @@
 package com.andrewkiluk.machmusicplayer;
 
+import com.andrewkiluk.machmusicplayer.models.Song;
+
 import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;

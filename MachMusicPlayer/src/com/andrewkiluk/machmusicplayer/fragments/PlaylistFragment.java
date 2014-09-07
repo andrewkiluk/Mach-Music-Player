@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.fragments;
 
 import java.util.ArrayList;
 
@@ -17,6 +17,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.andrewkiluk.machmusicplayer.PlayListAdapter;
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.R.id;
+import com.andrewkiluk.machmusicplayer.R.layout;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.PlayerStatus;
 import com.mobeta.android.dslv.DSLVFragment;
 
 
