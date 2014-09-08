@@ -111,6 +111,7 @@ public class SongsFragment extends ListFragment {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
+				Log.d("mach", "clicked with position : "  + position);
 				if(position ==0){
 					selectAllListItems(parent);
 				} else{
@@ -126,9 +127,17 @@ public class SongsFragment extends ListFragment {
 		int count = parent.getChildCount();
 		Log.d("mach", "count : "+ count);
 		Log.d("mach", "first : "+ first);
-		for(int i=0; i< count; i++){
+		
+		for(int i=1; i< first; i++){
+			selectListItem(null, i);
+		}
+		
+		for(int i=first; i< count; i++){
+			if(i==0){
+				continue;
+			}
 			View child = parent.getChildAt(i);
-			selectListItem(child, i);
+			selectListItem(child, i-1);
 		}
 		
 		for(int i=count; i< songsList.size(); i++){
@@ -137,6 +146,8 @@ public class SongsFragment extends ListFragment {
 	}
 
 	public void selectListItem(View view, int position){
+		
+		Log.d("mach", "called with position : "  + position);
 		
 		if(adapter.selectedStatus[position]){
 			adapter.selectedStatus[position] = false;
