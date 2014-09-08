@@ -162,7 +162,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			}catch(IOException e){
 				e.printStackTrace();
 			}
-			mp.seekTo(sharedPrefs.getInt("currentTimer", 0));
+			PlayerStatus.playerReady = true;
+			int oldTime = sharedPrefs.getInt("currentTimer", 0);
+			Log.d("mach", oldTime + "");
+			mp.seekTo(oldTime);
 
 			mp.setOnCompletionListener(this);
 
@@ -580,7 +583,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	// Called by the playSong function, does the MediaPlayer mechanics
 	public void play() { 
 
-		if  (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+		if(AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
 				AudioManager.AUDIOFOCUS_GAIN)){
 			hasAudioFocus = true;
 		}
@@ -594,9 +597,17 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				e.printStackTrace();
 			} 
 			mp.setOnPreparedListener(this);
+			PlayerStatus.playerReady = false;
 			mp.prepareAsync(); // prepare asynchronously to not block main thread
 		}
 	}
+	
+	// Called when MediaPlayer is ready to actually play a song.
+		public void onPrepared(MediaPlayer player) {
+			PlayerStatus.playerReady = true;
+			player.start();
+			mp.setOnCompletionListener(this);
+		}
 
 	// Loads CurrentData.currentSong into the MediaPlayer class.
 	public void loadCurrentSong(){
@@ -698,13 +709,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		setNot.run();
 
-	}
-
-	// Called when MediaPlayer is ready to actually play a song.
-	public void onPrepared(MediaPlayer player) {
-		PlayerStatus.playerReady = true;
-		player.start();
-		mp.setOnCompletionListener(this);
 	}
 
 	// Update information about the current song

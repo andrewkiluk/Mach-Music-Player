@@ -40,7 +40,6 @@ public class LoadingScreenActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		CurrentData init = new CurrentData(); // Used to initialize static fields in CurrentData
 
 		// Load oldCursorCount to check if the media on the device has changed
 		int oldCursorCount = sharedPrefs.getInt("oldCursorCount", 0);

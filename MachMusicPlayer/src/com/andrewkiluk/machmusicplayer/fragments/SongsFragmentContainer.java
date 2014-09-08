@@ -13,6 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class SongsFragmentContainer extends Fragment {
+	
+	public SongsFragment songsFragment;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -20,7 +22,7 @@ public class SongsFragmentContainer extends Fragment {
 
 		View rootView = inflater.inflate(R.layout.fragment_list_container, container, false);
 		if(LibraryInfo.songsList.size() > 0){
-			SongsFragment songsFragment = new SongsFragment();
+			songsFragment = new SongsFragment();
 			Bundle songArgs = new Bundle();
 			songArgs.putInt("artistPosition", -1);
 			songArgs.putInt("albumPosition", -1);

@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 
 public class ArtistsFragmentContainer extends Fragment {
 
-	private ArtistsFragment artistsFragment;
+	public ArtistsFragment artistsFragment;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,

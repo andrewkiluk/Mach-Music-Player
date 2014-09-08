@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 
 public class AlbumsFragmentContainer extends Fragment {
 
-	private AlbumsFragment albumsFragment;
+	public AlbumsFragment albumsFragment;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
