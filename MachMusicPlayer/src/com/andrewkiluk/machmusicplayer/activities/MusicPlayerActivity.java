@@ -619,7 +619,7 @@ public class MusicPlayerActivity extends Activity implements SeekBar.OnSeekBarCh
 			songAlbum = CurrentData.currentSong.songData.get("songAlbum");
 		}
 		else{
-			songTitle = "";
+			songTitle = "No Song Loaded";
 			songArtist = "";
 			songAlbum = "";
 		}

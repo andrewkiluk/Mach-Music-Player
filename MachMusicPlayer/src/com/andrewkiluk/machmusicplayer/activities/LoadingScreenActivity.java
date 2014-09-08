@@ -48,7 +48,7 @@ public class LoadingScreenActivity extends Activity {
 		ContentResolver contentResolver = getApplicationContext().getContentResolver();
 		Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 		Cursor cursor = contentResolver.query(uri, null, null, null, null);
-		if(cursor.getCount() != oldCursorCount){
+		if(cursor != null && cursor.getCount() != oldCursorCount){
 			mediaChanged = true;
 			SharedPreferences.Editor editor = sharedPrefs.edit();
 			editor.putInt("oldCursorCount", cursor.getCount());

@@ -51,7 +51,7 @@
 
             <intent
                 android:action=".LibraryReloadActivity"
-                android:targetClass="com.andrewkiluk.machmusicplayer.LibraryReloadActivity"
+                android:targetClass="com.andrewkiluk.machmusicplayer.activities.LibraryReloadActivity"
                 android:targetPackage="com.andrewkiluk.machmusicplayer" />
         </Preference>
     </PreferenceCategory>

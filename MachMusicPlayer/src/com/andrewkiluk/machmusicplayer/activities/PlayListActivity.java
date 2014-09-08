@@ -229,8 +229,6 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 		CurrentData.currentPlaylistPosition = songIndex;
 		CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(songIndex);
 
-
-
 		setResult(321, in);
 		// Closing PlayListView
 		finish();

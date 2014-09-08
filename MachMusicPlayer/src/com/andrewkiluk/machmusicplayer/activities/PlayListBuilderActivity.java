@@ -9,6 +9,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,6 +39,8 @@ ActionBar.TabListener{
 	private Button button_clear_selection;
 
 	public ArrayList<Song> newSongs;
+	
+	public PlayListBuilderActivity that = this;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +128,14 @@ ActionBar.TabListener{
 				mAdapter = new PlayListBuilderAdapter(getSupportFragmentManager());
 				viewPager.setAdapter(mAdapter);
 				actionBar.setSelectedNavigationItem(currentTab);
-
+				
+				Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":"+viewPager.getCurrentItem());
+				if (fragment != null){
+					if (fragment.getView() != null){
+						fragment.getChildFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+					}
+				}
+				
 			}
 		});
 	}
@@ -166,8 +176,7 @@ ActionBar.TabListener{
 	@Override
 	public void onBackPressed() {
 		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":"+viewPager.getCurrentItem());
-		if (fragment != null) // could be null if not instantiated yet
-		{
+		if (fragment != null){
 			if (fragment.getView() != null) {
 				// Pop the backstack on the ChildManager if there is any. If not, close this activity as normal.
 				if (!fragment.getChildFragmentManager().popBackStackImmediate()) {
