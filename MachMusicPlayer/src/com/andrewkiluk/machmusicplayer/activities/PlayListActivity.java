@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.activities;
 
 import android.app.ActionBar;
 import android.content.ComponentName;
@@ -13,14 +13,19 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.andrewkiluk.machmusicplayer.MusicPlayerService;
 import com.andrewkiluk.machmusicplayer.MusicPlayerService.LocalBinder;
+import com.andrewkiluk.machmusicplayer.fragments.PlaylistFragment;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.PlayerOptions;
+import com.andrewkiluk.machmusicplayer.models.PlayerStatus;
+import com.andrewkiluk.machmusicplayer.R;
 import com.google.gson.Gson;
 
 
@@ -223,8 +228,6 @@ public class PlayListActivity extends FragmentActivity implements PlaylistFragme
 		}
 		CurrentData.currentPlaylistPosition = songIndex;
 		CurrentData.currentSong = CurrentData.currentPlaylist.songs.get(songIndex);
-
-
 
 		setResult(321, in);
 		// Closing PlayListView

@@ -11,10 +11,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
-import com.andrewkiluk.machmusicplayer.CurrentData;
-import com.andrewkiluk.machmusicplayer.PlayerOptions;
 import com.andrewkiluk.machmusicplayer.R;
-import com.andrewkiluk.machmusicplayer.Song;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.PlayerOptions;
+import com.andrewkiluk.machmusicplayer.models.Song;
 
 
 public class DSLVFragment extends ListFragment {

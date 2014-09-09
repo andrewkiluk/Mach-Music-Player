@@ -27,6 +27,11 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.andrewkiluk.machmusicplayer.activities.MusicPlayerActivity;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.PlayerOptions;
+import com.andrewkiluk.machmusicplayer.models.PlayerStatus;
+import com.andrewkiluk.machmusicplayer.models.Song;
 import com.google.gson.Gson;
 
 
@@ -157,7 +162,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			}catch(IOException e){
 				e.printStackTrace();
 			}
-			mp.seekTo(sharedPrefs.getInt("currentTimer", 0));
+			PlayerStatus.playerReady = true;
+			int oldTime = sharedPrefs.getInt("currentTimer", 0);
+			Log.d("mach", oldTime + "");
+			mp.seekTo(oldTime);
 
 			mp.setOnCompletionListener(this);
 
@@ -181,7 +189,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		} 
 		else if(CurrentData.currentSongIndex == CurrentData.currentPlaylist.songs.size()-1 && PlayerOptions.repeatMode.equals("OFF")){
 			// Completed playlist
-			PlayerStatus.endReached = true;
+			PlayerStatus.playListComplete = true;
 			if (!PlayerStatus.isVisible){
 				setAlarm();
 			}
@@ -356,7 +364,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		setAlarm();
 	}
 
-	void getNextSong(){
+	public void getNextSong(){
 		if(PlayerOptions.isShuffle){  // shuffle is on
 
 			int songsLeft = 0;
@@ -456,7 +464,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	}
 
 
-	void playNext(){   
+	public void playNext(){   
 		if(CurrentData.currentPlaylist.songs.isEmpty()){
 			return;
 		}
@@ -484,7 +492,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 
 
-	void playPrevious(){
+	public void playPrevious(){
 		if(CurrentData.currentPlaylist.songs.isEmpty()){
 			return;
 		}
@@ -575,7 +583,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	// Called by the playSong function, does the MediaPlayer mechanics
 	public void play() { 
 
-		if  (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+		if(AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
 				AudioManager.AUDIOFOCUS_GAIN)){
 			hasAudioFocus = true;
 		}
@@ -589,9 +597,17 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				e.printStackTrace();
 			} 
 			mp.setOnPreparedListener(this);
+			PlayerStatus.playerReady = false;
 			mp.prepareAsync(); // prepare asynchronously to not block main thread
 		}
 	}
+	
+	// Called when MediaPlayer is ready to actually play a song.
+		public void onPrepared(MediaPlayer player) {
+			PlayerStatus.playerReady = true;
+			player.start();
+			mp.setOnCompletionListener(this);
+		}
 
 	// Loads CurrentData.currentSong into the MediaPlayer class.
 	public void loadCurrentSong(){
@@ -693,13 +709,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		setNot.run();
 
-	}
-
-	// Called when MediaPlayer is ready to actually play a song.
-	public void onPrepared(MediaPlayer player) {
-		PlayerStatus.playerReady = true;
-		player.start();
-		mp.setOnCompletionListener(this);
 	}
 
 	// Update information about the current song

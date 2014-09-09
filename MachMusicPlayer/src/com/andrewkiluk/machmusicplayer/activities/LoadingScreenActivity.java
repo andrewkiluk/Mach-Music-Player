@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.activities;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -15,6 +15,13 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.andrewkiluk.machmusicplayer.LibraryFiller;
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.R.layout;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
+import com.andrewkiluk.machmusicplayer.models.Playlist;
+import com.andrewkiluk.machmusicplayer.models.Song;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -33,7 +40,6 @@ public class LoadingScreenActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		CurrentData init = new CurrentData(); // Used to initialize static fields in CurrentData
 
 		// Load oldCursorCount to check if the media on the device has changed
 		int oldCursorCount = sharedPrefs.getInt("oldCursorCount", 0);
@@ -42,7 +48,7 @@ public class LoadingScreenActivity extends Activity {
 		ContentResolver contentResolver = getApplicationContext().getContentResolver();
 		Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 		Cursor cursor = contentResolver.query(uri, null, null, null, null);
-		if(cursor.getCount() != oldCursorCount){
+		if(cursor != null && cursor.getCount() != oldCursorCount){
 			mediaChanged = true;
 			SharedPreferences.Editor editor = sharedPrefs.edit();
 			editor.putInt("oldCursorCount", cursor.getCount());

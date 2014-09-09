@@ -1,8 +1,11 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.activities;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.models.PlayerStatus;
 
 public class SettingsActivity extends PreferenceActivity { 
 	//implements OnPreferenceClickListener{

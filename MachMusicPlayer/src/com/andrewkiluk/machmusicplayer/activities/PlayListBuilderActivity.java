@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.activities;
 
 import java.util.ArrayList;
 
@@ -9,12 +9,21 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+
+import com.andrewkiluk.machmusicplayer.PlayListBuilderAdapter;
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.models.CurrentData;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
+import com.andrewkiluk.machmusicplayer.models.PlayerStatus;
+import com.andrewkiluk.machmusicplayer.models.SelectionStatus;
+import com.andrewkiluk.machmusicplayer.models.Song;
 
 public class PlayListBuilderActivity extends FragmentActivity implements
 ActionBar.TabListener{
@@ -30,6 +39,8 @@ ActionBar.TabListener{
 	private Button button_clear_selection;
 
 	public ArrayList<Song> newSongs;
+	
+	public PlayListBuilderActivity that = this;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -117,7 +128,14 @@ ActionBar.TabListener{
 				mAdapter = new PlayListBuilderAdapter(getSupportFragmentManager());
 				viewPager.setAdapter(mAdapter);
 				actionBar.setSelectedNavigationItem(currentTab);
-
+				
+				Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":"+viewPager.getCurrentItem());
+				if (fragment != null){
+					if (fragment.getView() != null){
+						fragment.getChildFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+					}
+				}
+				
 			}
 		});
 	}
@@ -158,8 +176,7 @@ ActionBar.TabListener{
 	@Override
 	public void onBackPressed() {
 		Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":"+viewPager.getCurrentItem());
-		if (fragment != null) // could be null if not instantiated yet
-		{
+		if (fragment != null){
 			if (fragment.getView() != null) {
 				// Pop the backstack on the ChildManager if there is any. If not, close this activity as normal.
 				if (!fragment.getChildFragmentManager().popBackStackImmediate()) {
@@ -188,32 +205,4 @@ ActionBar.TabListener{
 		// TODO Auto-generated method stub
 
 	}
-}
-
-
-class SelectionStatus{
-	
-	public static boolean songsListSelection[];
-	public static boolean albumsListSelection[][];
-	public static boolean artistsListSelection[][][];
-	
-	SelectionStatus(){
-		songsListSelection = new boolean[LibraryInfo.songsList.size()];
-		int maxAlbumSongs = 0;
-		for(Album album : LibraryInfo.albumsList){
-			if(album.songs.size() > maxAlbumSongs){
-				maxAlbumSongs = album.songs.size();
-			}
-		}
-		int maxAlbumNumber = 0;
-		for(Artist artist: LibraryInfo.artistsList){
-			if(artist.albums.size() > maxAlbumNumber){
-				maxAlbumNumber = artist.albums.size();
-			}
-		}
-		albumsListSelection = new boolean[LibraryInfo.albumsList.size()][maxAlbumSongs];
-		artistsListSelection = new boolean[LibraryInfo.artistsList.size()][maxAlbumNumber][maxAlbumSongs];
-		
-	}
-	
 }

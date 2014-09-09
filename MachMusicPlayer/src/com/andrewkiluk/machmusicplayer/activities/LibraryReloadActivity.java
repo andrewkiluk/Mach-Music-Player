@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.activities;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -11,6 +11,10 @@ import android.preference.PreferenceManager;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.andrewkiluk.machmusicplayer.LibraryFiller;
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
+import com.andrewkiluk.machmusicplayer.models.Playlist;
 import com.google.gson.Gson;
 
 public class LibraryReloadActivity extends Activity { 

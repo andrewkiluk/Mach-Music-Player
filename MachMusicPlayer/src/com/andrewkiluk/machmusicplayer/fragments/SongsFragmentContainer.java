@@ -1,4 +1,9 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.fragments;
+
+import com.andrewkiluk.machmusicplayer.R;
+import com.andrewkiluk.machmusicplayer.R.id;
+import com.andrewkiluk.machmusicplayer.R.layout;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,6 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class SongsFragmentContainer extends Fragment {
+	
+	public SongsFragment songsFragment;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -15,7 +22,7 @@ public class SongsFragmentContainer extends Fragment {
 
 		View rootView = inflater.inflate(R.layout.fragment_list_container, container, false);
 		if(LibraryInfo.songsList.size() > 0){
-			SongsFragment songsFragment = new SongsFragment();
+			songsFragment = new SongsFragment();
 			Bundle songArgs = new Bundle();
 			songArgs.putInt("artistPosition", -1);
 			songArgs.putInt("albumPosition", -1);

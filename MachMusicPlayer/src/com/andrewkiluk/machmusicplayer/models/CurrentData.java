@@ -1,12 +1,6 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.models;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Random;
 
 
 public class CurrentData {
@@ -16,7 +10,6 @@ public class CurrentData {
 		shuffleHistory = new ArrayList<Integer>();
 		currentPlaylist = new Playlist();
 		shuffleQueue = new int[currentPlaylist.songs.size()];
-
 	}
 
 	public static Song currentSong;						// Song which is up for playing
@@ -48,82 +41,4 @@ public class CurrentData {
 			}
 		}
 	}
-}
-
-
-class PlayerStatus {
-	public static boolean isVisible = false;
-	public static boolean notification_set = false;
-	public static boolean alarm_set = false;
-	public static boolean playlistReset = false;
-	public static boolean endReached = false;
-	public static boolean playerReady = false;
-	public static boolean timerReset = false;
-}
-
-
-class Album
-{
-	Album()
-	{
-		title = null;
-		songs = new ArrayList<Song>();
-		artist = null;
-	}
-	Album(String input)
-	{
-		title = input;
-		songs = new ArrayList<Song>();
-		artist = null;
-	}
-	public void addSong(Song song){
-		songs.add(song);
-	}
-	public String title;
-	public String artist;
-	public ArrayList<Song> songs;
-}
-
-class Artist
-{
-	Artist()
-	{
-		name = null;
-		albums = new ArrayList<Album>();
-	}
-	Artist(String input)
-	{
-		name = input;
-		albums = new ArrayList<Album>();
-	}
-	public void addAlbum(Album album){
-		albums.add(album);
-	}
-	public String name;
-	public ArrayList<Album> albums;
-}
-
-class LibraryInfo
-{
-	LibraryInfo(){
-		songsList = new ArrayList<Song>();
-		newSongs = new ArrayList<Song>();
-		artistsList = new ArrayList<Artist>();
-		albumsList = new ArrayList<Album>();
-		isInitialized = true;
-		currentSongIndex = 0;
-		currentPlaylist = new Playlist(new ArrayList<Song>(), "__CURRENT_PLAYLIST__");
-		playlists = new ArrayList<Playlist>();
-	}
-	public static void clearPlaylist(){
-		currentPlaylist = new Playlist();
-	}
-	public static boolean isInitialized = false;
-	public static ArrayList<Song> songsList;
-	public static Playlist currentPlaylist;
-	public static int currentSongIndex;
-	public static ArrayList<Playlist> playlists;
-	public static ArrayList<Song> newSongs;
-	public static ArrayList<Artist> artistsList;
-	public static ArrayList<Album> albumsList;
 }

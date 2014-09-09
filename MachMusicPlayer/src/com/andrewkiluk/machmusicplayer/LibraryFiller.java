@@ -20,6 +20,11 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.andrewkiluk.machmusicplayer.models.Album;
+import com.andrewkiluk.machmusicplayer.models.Artist;
+import com.andrewkiluk.machmusicplayer.models.LibraryInfo;
+import com.andrewkiluk.machmusicplayer.models.Song;
+
 public class LibraryFiller {
 	// SDCard Path
 	String baseDir = Environment.getExternalStorageDirectory().getPath();

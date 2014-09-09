@@ -1,4 +1,4 @@
-package com.andrewkiluk.machmusicplayer;
+package com.andrewkiluk.machmusicplayer.models;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -6,14 +6,13 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
-
  
 
 public class Song implements Comparable<Song>
 {
 	public HashMap<String, String> songData;
 
-	Song(Song oldCopy){
+	public Song(Song oldCopy){
 		HashMap<String, String> newCopy = new HashMap<String, String>();
 		for (String key : oldCopy.songData.keySet()) {
 			newCopy.put(key, oldCopy.songData.get(key));
@@ -21,7 +20,7 @@ public class Song implements Comparable<Song>
 		this.songData = newCopy;
 	}
 
-	Song(String title, String album, String artist, String path){
+	public Song(String title, String album, String artist, String path){
 		songData = new HashMap<String, String>();
 		songData.put("songArtist", artist);
 		songData.put("songAlbum", album);
@@ -29,7 +28,7 @@ public class Song implements Comparable<Song>
 		songData.put("songPath", path);
 	}
 
-	Song(HashMap<String, String> input){
+	public Song(HashMap<String, String> input){
 		songData = input;
 	}
 	public int track(){
@@ -84,7 +83,6 @@ public class Song implements Comparable<Song>
 
 	}
 }
-
 
 class TrackNumberComparator implements Comparator<Song>
 {

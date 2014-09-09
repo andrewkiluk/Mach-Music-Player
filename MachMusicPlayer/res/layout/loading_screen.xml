@@ -5,29 +5,21 @@
     android:background="@color/footercolor"
     android:gravity="center" >
 
-    <RelativeLayout
+    <ImageView
+        android:id="@+id/loading_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:orientation="vertical" >
+        android:src="@drawable/ic_action_play" />
 
-        <ImageView
-            android:id="@+id/loading_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:src="@drawable/ic_action_play" />
-
-        <TextView
-            android:id="@+id/loading_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_below="@id/loading_image"
-            android:text="Loading Library..."
-            android:textColor="#eeeeee"
-            android:textSize="24sp" />
-    </RelativeLayout>
+    <TextView
+        android:id="@+id/loading_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/loading_image"
+        android:layout_centerHorizontal="true"
+        android:text="Loading Library..."
+        android:textColor="#eeeeee"
+        android:textSize="24sp" />
 
 </RelativeLayout>
