@@ -109,11 +109,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		// Create the MediaPlayer
 		mp = new MediaPlayer();
-//		mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 		
 		// Create WakeLock
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
+		wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "PartialWakeLock");
 
 		// Run various setup functions
 		initializeNotificationBroadcastReceiver();
@@ -218,6 +217,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			if (mp == null) {
 				mp = new MediaPlayer();
 				mp.setOnCompletionListener(this);
+				
+				wakeLock.acquire();
 
 				mp.reset();
 				String songPath = CurrentData.currentSong.songData.get("songPath");
@@ -255,6 +256,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				editor.commit();
 
 				mp.stop();
+				
+				wakeLock.release();
 				
 				if (mListener!=null){
 					mListener.SetPlayButtonStatus("play");
@@ -295,8 +298,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		alarmReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context c, Intent i) {
+				if(wakeLock.isHeld()){
+					wakeLock.release();
+				}
 				stopForeground(true);
-				wakeLock.release();
 			}
 		};
 		registerReceiver(alarmReceiver, new IntentFilter("com.andrewkiluk.servicealarm") );
@@ -362,6 +367,11 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		}
 		updateNotification(false);
 		setAlarm();
+		if(wakeLock.isHeld()){
+			wakeLock.release();
+		}
+		
+		
 	}
 
 	public void getNextSong(){
@@ -560,6 +570,11 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	// Calls play() and updates the UI.
 	public void playSong(){ 
 		if(CurrentData.currentSong != null){
+			// Set a partial wake lock
+			wakeLock.acquire();
+			
+			PlayerStatus.playListComplete = false;
+			
 			try{
 				play();
 				currentSongArtist = CurrentData.currentSong.songData.get("songArtist");
@@ -696,18 +711,15 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 				notification.flags |= Notification.FLAG_NO_CLEAR;
 				startForeground(notificationID, notification);
-				// Set a partial wake lock
-				wakeLock.acquire();
 				
 				PlayerStatus.notification_set = true;	
-
 
 			}
 		};
 
 		setNotification setNot = new setNotification();
 
-		setNot.run();
+		new Thread(setNot).start();
 
 	}
 
