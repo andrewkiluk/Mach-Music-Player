@@ -25,6 +25,7 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 import com.andrewkiluk.machmusicplayer.activities.MusicPlayerActivity;
@@ -240,8 +241,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 //					mp.start();
 					shouldResume = false;
 				}
+			} else{
+				mp.setVolume(1.0f, 1.0f);
 			}
-			mp.setVolume(1.0f, 1.0f);
 			hasAudioFocus = true;
 			break;
 
@@ -358,6 +360,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		registerReceiver(notificationBroadcastReceiver, notificationFilter );
 	}
+
+	// Methods for audio control
 	
 	public void pausePlayer()
 	{
@@ -679,7 +683,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 				boolean big_notifications = sharedPrefs.getBoolean("big_notifications", true);
 
-				notificationBuilder.setOngoing(true)
+				notificationBuilder
 				.setPriority(Notification.PRIORITY_HIGH)
 				.setWhen(0)
 				.setContentIntent(clickNotificationIntent)
@@ -710,6 +714,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 
 				notification.flags |= Notification.FLAG_NO_CLEAR;
+				
 				startForeground(notificationID, notification);
 				
 				PlayerStatus.notification_set = true;	
