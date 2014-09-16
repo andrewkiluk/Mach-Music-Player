@@ -667,7 +667,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 	// Updates existing system notification
 	public void updateNotification(boolean isPlaying) {
-		final int notificationID = 1;
+		final int notificationID = 18274643;
 
 		updateCurrentSong();
 
