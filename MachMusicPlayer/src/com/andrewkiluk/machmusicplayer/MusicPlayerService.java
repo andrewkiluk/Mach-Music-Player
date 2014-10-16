@@ -218,8 +218,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			if (mp == null) {
 				mp = new MediaPlayer();
 				mp.setOnCompletionListener(this);
-				
-				wakeLock.acquire();
+
+                if(wakeLock.isHeld()) {
+                    wakeLock.acquire();
+                }
 
 				mp.reset();
 				String songPath = CurrentData.currentSong.songData.get("songPath");
