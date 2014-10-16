@@ -180,8 +180,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	@Override
 	public void onCompletion(MediaPlayer arg0) { 
 
-		Log.d("test", PlayerOptions.repeatMode);
-
+		setTemporaryWakeLock();
+		
 		// check whether repeat is ON or OFF
 		if(PlayerOptions.repeatMode == "SONG"){
 			// if repeat is on, play same song again
@@ -218,10 +218,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			if (mp == null) {
 				mp = new MediaPlayer();
 				mp.setOnCompletionListener(this);
-
-                if(wakeLock.isHeld()) {
-                    wakeLock.acquire();
-                }
 
 				mp.reset();
 				String songPath = CurrentData.currentSong.songData.get("songPath");
@@ -260,8 +256,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 				editor.commit();
 
 				mp.stop();
-				
-				wakeLock.release();
 				
 				if (mListener!=null){
 					mListener.SetPlayButtonStatus("play");
@@ -302,9 +296,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		alarmReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context c, Intent i) {
-				if(wakeLock.isHeld()){
-					wakeLock.release();
-				}
 				stopForeground(true);
 			}
 		};
@@ -373,10 +364,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		}
 		updateNotification(false);
 		setAlarm();
-		if(wakeLock.isHeld()){
-			wakeLock.release();
-		}
-		
 		
 	}
 
@@ -576,8 +563,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	// Calls play() and updates the UI.
 	public void playSong(){ 
 		if(CurrentData.currentSong != null){
-			// Set a partial wake lock
-			wakeLock.acquire();
 			
 			PlayerStatus.playListComplete = false;
 			
@@ -807,6 +792,30 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		
 		PlayerStatus.alarm_set = true;
 	}
+	
+	public void setTemporaryWakeLock(){
+		if(!wakeLock.isHeld()){
+			wakeLock.acquire();
+			
+			class wakeLockRunnable implements Runnable {
+				public void run() {
+					try {
+					    Thread.sleep(5000);
+					} catch(InterruptedException ex) {
+					    Thread.currentThread().interrupt();
+					}
+					if(wakeLock.isHeld()){
+						Log.d("test", "wakelock released");
+						wakeLock.release();
+					}
+				}
+			};
+
+			new Thread(new wakeLockRunnable()).start();
+		}
+				
+	}
+	
 
 	public void cancelAlarm() {
 		// Cancel the alarm from setAlarm().
