@@ -25,6 +25,7 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 import com.andrewkiluk.machmusicplayer.activities.MusicPlayerActivity;
@@ -109,11 +110,10 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		// Create the MediaPlayer
 		mp = new MediaPlayer();
-//		mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 		
 		// Create WakeLock
 		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
+		wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "PartialWakeLock");
 
 		// Run various setup functions
 		initializeNotificationBroadcastReceiver();
@@ -180,8 +180,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	@Override
 	public void onCompletion(MediaPlayer arg0) { 
 
-		Log.d("test", PlayerOptions.repeatMode);
-
+		setTemporaryWakeLock();
+		
 		// check whether repeat is ON or OFF
 		if(PlayerOptions.repeatMode == "SONG"){
 			// if repeat is on, play same song again
@@ -239,8 +239,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 //					mp.start();
 					shouldResume = false;
 				}
+			} else{
+				mp.setVolume(1.0f, 1.0f);
 			}
-			mp.setVolume(1.0f, 1.0f);
 			hasAudioFocus = true;
 			break;
 
@@ -296,7 +297,6 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 			@Override
 			public void onReceive(Context c, Intent i) {
 				stopForeground(true);
-				wakeLock.release();
 			}
 		};
 		registerReceiver(alarmReceiver, new IntentFilter("com.andrewkiluk.servicealarm") );
@@ -353,6 +353,8 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 		registerReceiver(notificationBroadcastReceiver, notificationFilter );
 	}
+
+	// Methods for audio control
 	
 	public void pausePlayer()
 	{
@@ -362,6 +364,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		}
 		updateNotification(false);
 		setAlarm();
+		
 	}
 
 	public void getNextSong(){
@@ -560,6 +563,9 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 	// Calls play() and updates the UI.
 	public void playSong(){ 
 		if(CurrentData.currentSong != null){
+			
+			PlayerStatus.playListComplete = false;
+			
 			try{
 				play();
 				currentSongArtist = CurrentData.currentSong.songData.get("songArtist");
@@ -648,7 +654,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 	// Updates existing system notification
 	public void updateNotification(boolean isPlaying) {
-		final int notificationID = 1;
+		final int notificationID = 18274643;
 
 		updateCurrentSong();
 
@@ -664,7 +670,7 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 				boolean big_notifications = sharedPrefs.getBoolean("big_notifications", true);
 
-				notificationBuilder.setOngoing(true)
+				notificationBuilder
 				.setPriority(Notification.PRIORITY_HIGH)
 				.setWhen(0)
 				.setContentIntent(clickNotificationIntent)
@@ -695,19 +701,17 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 
 
 				notification.flags |= Notification.FLAG_NO_CLEAR;
+				
 				startForeground(notificationID, notification);
-				// Set a partial wake lock
-				wakeLock.acquire();
 				
 				PlayerStatus.notification_set = true;	
-
 
 			}
 		};
 
 		setNotification setNot = new setNotification();
 
-		setNot.run();
+		new Thread(setNot).start();
 
 	}
 
@@ -788,6 +792,30 @@ public class MusicPlayerService extends Service implements OnCompletionListener,
 		
 		PlayerStatus.alarm_set = true;
 	}
+	
+	public void setTemporaryWakeLock(){
+		if(!wakeLock.isHeld()){
+			wakeLock.acquire();
+			
+			class wakeLockRunnable implements Runnable {
+				public void run() {
+					try {
+					    Thread.sleep(5000);
+					} catch(InterruptedException ex) {
+					    Thread.currentThread().interrupt();
+					}
+					if(wakeLock.isHeld()){
+						Log.d("test", "wakelock released");
+						wakeLock.release();
+					}
+				}
+			};
+
+			new Thread(new wakeLockRunnable()).start();
+		}
+				
+	}
+	
 
 	public void cancelAlarm() {
 		// Cancel the alarm from setAlarm().
