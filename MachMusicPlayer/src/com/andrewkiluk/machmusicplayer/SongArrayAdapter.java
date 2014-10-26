@@ -2,6 +2,7 @@ package com.andrewkiluk.machmusicplayer;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,13 +53,17 @@ public class SongArrayAdapter extends ArrayAdapter<SongListData> {
 
 			// store the holder with the view.
 			convertView.setTag(viewHolder);
-			if (selectedStatus[position] == true)
-				convertView.setBackgroundResource(R.color.selected);
 
 		}else{
 			// we've just avoided calling findViewById() on resource every time
 			// just use the viewHolder
 			viewHolder = (ViewHolderItem) convertView.getTag();
+		}
+		
+		if (selectedStatus[position] == true){
+			convertView.setBackgroundResource(R.color.selected);
+		} else{
+			convertView.setBackgroundResource(R.color.footercolor);
 		}
 
 		// object item based on the position

@@ -205,7 +205,7 @@ public class LibraryFiller {
 					
 					String isMusic = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AudioColumns.IS_MUSIC));
 
-					if(isMusic.equals("0")){
+					if(isMusic == null || isMusic.equals("0")){
 						continue;
 					}
 				}

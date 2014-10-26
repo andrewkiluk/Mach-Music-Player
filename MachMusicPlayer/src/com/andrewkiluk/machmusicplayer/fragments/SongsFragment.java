@@ -81,9 +81,9 @@ public class SongsFragment extends ListFragment {
 				}
 			}
 			if(origin.equals("songs")){  // We're getting here from an songs fragment (it gets destroyed if we go all the way to the right!)
-				for(i=0; i< LibraryInfo.songsList.size(); i++){
+				for(i=0; i< LibraryInfo.songsList.size()+1; i++){
 					if (SelectionStatus.songsListSelection[i] == true){
-						adapter.selectedStatus[i+1] = true;						
+						adapter.selectedStatus[i] = true;						
 					}
 				}
 			}
@@ -128,29 +128,19 @@ public class SongsFragment extends ListFragment {
 		Log.d("mach", "count : "+ count);
 		Log.d("mach", "first : "+ first);
 		
-		for(int i=1; i< first; i++){
-			selectListItem(null, i);
-		}
-		
-		for(int i=first; i< count; i++){
-			if(i==0){
-				continue;
-			}
+		for(int i=1; i< songsList.size()+1; i++){
 			View child = parent.getChildAt(i);
 			selectListItem(child, i-1);
 		}
 		
-		for(int i=count; i< songsList.size(); i++){
-			selectListItem(null, i);
-		}
 	}
 
 	public void selectListItem(View view, int position){
 		
 		Log.d("mach", "called with position : "  + position);
 		
-		if(adapter.selectedStatus[position]){
-			adapter.selectedStatus[position] = false;
+		if(adapter.selectedStatus[position+1]){
+			adapter.selectedStatus[position+1] = false;
 			if(view != null){
 				view.setBackgroundResource(R.color.footercolor);
 			}
@@ -161,12 +151,12 @@ public class SongsFragment extends ListFragment {
 				SelectionStatus.albumsListSelection[albumPosition][position] = false;
 			}
 			if (origin.equals("songs")){
-				SelectionStatus.songsListSelection[position] = false;
+				SelectionStatus.songsListSelection[position+1] = false;
 			}
 
 		}
 		else{
-			adapter.selectedStatus[position] = true;
+			adapter.selectedStatus[position+1] = true;
 			if(view != null){
 				view.setBackgroundResource(R.color.selected);
 			}
@@ -177,7 +167,7 @@ public class SongsFragment extends ListFragment {
 				SelectionStatus.albumsListSelection[albumPosition][position] = true;
 			}
 			if (origin.equals("songs")){ // We're getting here by swiping left to the songs fragment
-				SelectionStatus.songsListSelection[position] = true;
+				SelectionStatus.songsListSelection[position+1] = true;
 			}
 
 		}
