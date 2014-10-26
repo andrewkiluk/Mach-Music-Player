@@ -124,17 +124,17 @@ ActionBar.TabListener{
 			public void onClick(View arg0) {
 				SelectionStatus selectionStatusObject = new SelectionStatus(); // This resets the selection arrays
 				
-				LibraryInfo.newSongs = new ArrayList<Song>();
-				mAdapter = new PlayListBuilderAdapter(getSupportFragmentManager());
-				viewPager.setAdapter(mAdapter);
-				actionBar.setSelectedNavigationItem(currentTab);
-				
 				Fragment fragment = (Fragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.pager + ":"+viewPager.getCurrentItem());
 				if (fragment != null){
 					if (fragment.getView() != null){
 						fragment.getChildFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
 					}
 				}
+				
+				LibraryInfo.newSongs = new ArrayList<Song>();
+				mAdapter = new PlayListBuilderAdapter(getSupportFragmentManager());
+				viewPager.setAdapter(mAdapter);
+				actionBar.setSelectedNavigationItem(currentTab);
 				
 			}
 		});

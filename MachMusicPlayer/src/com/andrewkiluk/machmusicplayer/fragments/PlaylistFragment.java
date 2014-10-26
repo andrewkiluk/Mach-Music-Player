@@ -78,7 +78,6 @@ public class PlaylistFragment extends DSLVFragment {
 //			
 //			
 //		}
-		
 		adapter = new PlayListAdapter(getActivity(), R.layout.list_item_handle_left, CurrentData.currentPlaylist.songs);
 		setListAdapter(adapter);
 	}

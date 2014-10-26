@@ -9,7 +9,7 @@ public class SelectionStatus{
 	public static boolean artistsListSelection[][][];
 	
 	public SelectionStatus(){
-		songsListSelection = new boolean[LibraryInfo.songsList.size()];
+		songsListSelection = new boolean[LibraryInfo.songsList.size() + 1];
 		int maxAlbumSongs = 0;
 		for(Album album : LibraryInfo.albumsList){
 			if(album.songs.size() > maxAlbumSongs){
