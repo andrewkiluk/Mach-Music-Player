@@ -115,7 +115,7 @@ public class SongsFragment extends ListFragment {
 				if(position ==0){
 					selectAllListItems(parent);
 				} else{
-					selectListItem(view, position-1);
+					selectListItem(view, position-1, false);
 				}
 			}
 		});
@@ -130,16 +130,16 @@ public class SongsFragment extends ListFragment {
 		
 		for(int i=1; i< songsList.size()+1; i++){
 			View child = parent.getChildAt(i);
-			selectListItem(child, i-1);
+			selectListItem(child, i-1, true);
 		}
 		
 	}
 
-	public void selectListItem(View view, int position){
+	public void selectListItem(View view, int position, boolean forceSelection){
 		
 		Log.d("mach", "called with position : "  + position);
 		
-		if(adapter.selectedStatus[position+1]){
+		if(!forceSelection && adapter.selectedStatus[position+1]){
 			adapter.selectedStatus[position+1] = false;
 			if(view != null){
 				view.setBackgroundResource(R.color.footercolor);
