@@ -125,7 +125,6 @@ public class SongsFragment extends ListFragment {
 						SelectionStatus.songsListSelection[position] = false;
 					}
 
-
 				}
 				else{
 					adapter.selectedStatus[position] = true;
@@ -140,7 +139,6 @@ public class SongsFragment extends ListFragment {
 					if (origin.equals("songs")){ // We're getting here by swiping left to the songs fragment
 						SelectionStatus.songsListSelection[position] = true;
 					}
-
 
 				}
 				Song newSong = songsList.get(position);

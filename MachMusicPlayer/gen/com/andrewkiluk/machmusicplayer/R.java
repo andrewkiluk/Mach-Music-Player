@@ -205,14 +205,15 @@ containing a value of this type.
         public static final int list_item_activated=0x7f020013;
         public static final int list_item_background=0x7f020014;
         public static final int list_item_selected=0x7f020015;
-        public static final int pause=0x7f020016;
-        public static final int pause_button=0x7f020017;
-        public static final int pause_pressed=0x7f020018;
-        public static final int progress_bar=0x7f020019;
-        public static final int progress_bar_bg=0x7f02001a;
-        public static final int progress_bar_full=0x7f02001b;
-        public static final int progress_bar_past=0x7f02001c;
-        public static final int slider=0x7f02001d;
+        public static final int mach_icon=0x7f020016;
+        public static final int pause=0x7f020017;
+        public static final int pause_button=0x7f020018;
+        public static final int pause_pressed=0x7f020019;
+        public static final int progress_bar=0x7f02001a;
+        public static final int progress_bar_bg=0x7f02001b;
+        public static final int progress_bar_full=0x7f02001c;
+        public static final int progress_bar_past=0x7f02001d;
+        public static final int slider=0x7f02001e;
     }
     public static final class id {
         public static final int action_settings=0x7f050033;
